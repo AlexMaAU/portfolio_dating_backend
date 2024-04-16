@@ -2,10 +2,10 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.ts",
   "scripts": {
     "start": "npm run build && node dist/app.js",
-    "dev": "concurrently \"npm run build\" \"nodemon src/index.ts --exec ts-node --files\"",
+    "dev": "concurrently \"npm run build\" \"nodemon src/app.ts --exec ts-node --files\"",
     "build": "tsc",
     "lint": "eslint . --ext .ts --fix && prettier --write .",
     "lint:fix": "eslint . --ext .ts --fix && prettier --write .",
@@ -46,3 +46,4 @@
     "ts-node": "^10.9.2"
   }
 }
+
