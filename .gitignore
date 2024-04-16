@@ -1,0 +1,20 @@
+# Ignore node_modules directory
+node_modules/
+
+# Ignore compiled JavaScript files
+*.js
+*.js.map
+
+# Ignore logs and other build files
+logs/
+dist/
+build/
+
+# Ignore environment variables file
+.env
+
+# Ignore Visual Studio Code directory
+.vscode/
+
+# Ignore macOS system files
+.DS_Store
