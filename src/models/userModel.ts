@@ -19,6 +19,7 @@ const userSchema = new Schema({
     type: String,
     default: null,
     required: true,
+    select: false,
   },
   country: {
     type: String,
@@ -54,6 +55,10 @@ const userSchema = new Schema({
     default: null,
   },
   birthday: {
+    type: String,
+    default: null,
+  },
+  age: {
     type: String,
     default: null,
   },
@@ -137,6 +142,10 @@ const userSchema = new Schema({
       },
     ],
     default: [],
+  },
+  register_date: {
+    type: String,
+    default: Date.now,
   },
   last_login: {
     type: String,

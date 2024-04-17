@@ -20,6 +20,7 @@ const adminSchema = new Schema({
     type: String,
     default: null,
     required: true,
+    select: false,
   },
 });
 
