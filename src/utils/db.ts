@@ -59,6 +59,16 @@ const connectToDB = async () => {
         .collection('users')
         .createIndex({ username: 1 });
 
+      // 创建 mail_sessions 字段的索引
+      await mongoose.connection.db
+        .collection('users')
+        .createIndex({ mail_sessions: 1 });
+
+      // 创建 email 字段的索引
+      await mongoose.connection.db
+        .collection('users')
+        .createIndex({ email: 1 });
+
       console.log('Index created successfully');
     } catch (error) {
       console.error('Error creating index:', error);

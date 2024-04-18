@@ -30,7 +30,7 @@ export const userSignup = async (req: Request, res: Response) => {
     });
     res.status(201).json({ newUser, token });
   } catch (error: any) {
-    console.error('Error in signup:', error);
+    console.error('Error in userSignup:', error);
     res.status(400).json({ error });
   }
 };
@@ -70,7 +70,7 @@ export const userLogin = async (req: Request, res: Response) => {
 
     res.status(200).json({ user, token });
   } catch (error: any) {
-    console.error('Error in login:', error);
+    console.error('Error in userLogin:', error);
     res.status(400).json({ error });
   }
 };
@@ -85,6 +85,14 @@ export const updateUserById = async (req: Request, res: Response) => {
       allowUnknown: true,
       stripUnknown: true,
     });
+
+    // 根据生日计算年龄
+    const { birthday } = validBody;
+    const birthdayDate = new Date(birthday);
+    const currentDate = new Date();
+    const age = currentDate.getFullYear() - birthdayDate.getFullYear();
+    validBody.age = age;
+
     const updatedUser = await User.findByIdAndUpdate(userId, validBody, {
       new: true,
     }).exec();
@@ -116,7 +124,7 @@ export const updateUserPasswordById = async (req: Request, res: Response) => {
       new: true,
     }).exec();
     res.status(200).json(updatedUser);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in updateUserPasswordById:', error);
     res.status(400).json({ error });
   }
@@ -139,17 +147,16 @@ export const updateUserStatusById = async (req: Request, res: Response) => {
       new: true,
     }).exec();
     res.status(200).json(updatedUser);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in updateUserStatusById:', error);
     res.status(400).json({ error });
   }
 };
 
-// TODO: add search username
 // get all users with pagination
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const { page } = req.query; // 获取请求中的页码参数
+    const { page, username } = req.query; // 获取请求中的页码参数
     const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
 
     const totalCount = await User.countDocuments(); // 获取用户总数，用于计算总页数
@@ -159,13 +166,18 @@ export const getAllUsers = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid page number' });
     }
 
-    const users = await User.find()
+    let queryConditions: any = {};
+    if (username) {
+      queryConditions.username = { $regex: username, $options: 'i' };
+    }
+
+    const users = await User.find(queryConditions)
       .sort({ register_date: -1 }) // 按注册日期从新到旧排序
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
       .exec();
     res.status(200).json(users);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in getAllUsers:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -229,7 +241,7 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
       .limit(pageSize) // 限制返回的文档数量
       .exec();
     res.status(200).json(users);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in getAllUsers:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -277,7 +289,7 @@ export const getRandomUser = async (req: Request, res: Response) => {
 
     // 返回随机选择的用户
     res.status(200).json(users[randomIndex]);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in getRandomUser:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -295,7 +307,7 @@ export const getUserById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
     res.status(200).json(user);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in getUserById:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
