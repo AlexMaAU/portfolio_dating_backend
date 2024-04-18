@@ -1,10 +1,8 @@
 import express from 'express';
 import {
   getActiveUserById,
-  getAllUsers,
   getFilteredUsers,
   getRandomUser,
-  getUserById,
   updateUserById,
   userLogin,
   userSignup,
@@ -12,7 +10,7 @@ import {
 
 const userRouter = express.Router();
 
-userRouter.post('/', userSignup);
+userRouter.post('/signup', userSignup);
 
 userRouter.post('/login', userLogin);
 

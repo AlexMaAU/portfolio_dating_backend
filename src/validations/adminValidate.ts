@@ -9,7 +9,6 @@ export const newAdminSchemaValidate = joi.object({
 export const updateAdminSchemaValidate = joi.object({
   active: joi.boolean().optional(),
   username: joi.string().optional(),
-  email: joi.string().email().optional(),
   password: joi.string().min(4).max(10).optional(),
 });
 

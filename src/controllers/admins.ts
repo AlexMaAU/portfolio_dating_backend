@@ -75,6 +75,12 @@ export const updateAdminById = async (req: Request, res: Response) => {
       stripUnknown: true,
     });
 
+    // 如果请求中包含密码，对密码进行哈希处理
+    const { password } = validBody;
+    if (validBody.password) {
+      validBody.password = await bcrypt.hash(password, 10);
+    }
+
     const updatedAdmin = await Admin.findByIdAndUpdate(adminId, validBody, {
       new: true,
     }).exec();
