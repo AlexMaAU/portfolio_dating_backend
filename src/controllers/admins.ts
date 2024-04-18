@@ -6,6 +6,7 @@ import {
   updateAdminSchemaValidate,
 } from '../validations/adminValidate';
 import Admin from '../models/adminModel';
+import mongoose from 'mongoose';
 
 export const adminSignup = async (req: Request, res: Response) => {
   try {
@@ -63,8 +64,12 @@ export const updateAdminById = async (req: Request, res: Response) => {
   try {
     const { adminId } = req.params;
     if (!adminId) {
+      return res.status(400).json({ error: 'admin ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(adminId)) {
       return res.status(400).json({ error: 'Invalid admin ID' });
     }
+
     const validBody = await updateAdminSchemaValidate.validateAsync(req.body, {
       allowUnknown: true,
       stripUnknown: true,

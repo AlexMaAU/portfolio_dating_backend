@@ -18,6 +18,11 @@ const connectToDB = async () => {
         .collection('users')
         .createIndex({ register_date: -1 });
 
+      // 创建 payment_date 字段的降序索引
+      await mongoose.connection.db
+        .collection('payments')
+        .createIndex({ payment_date: -1 });
+
       // 创建 country 字段的索引
       await mongoose.connection.db
         .collection('users')
@@ -68,6 +73,11 @@ const connectToDB = async () => {
       await mongoose.connection.db
         .collection('users')
         .createIndex({ email: 1 });
+
+      // 创建 all_messages 字段的索引
+      await mongoose.connection.db
+        .collection('sessions')
+        .createIndex({ all_messages: 1 });
 
       console.log('Index created successfully');
     } catch (error) {

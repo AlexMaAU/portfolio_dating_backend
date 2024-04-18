@@ -16,11 +16,11 @@ export const getAllSessions = async (req: Request, res: Response) => {
     const { page } = req.query; // 获取请求中的页码参数
     const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
 
-    const totalCount = await Session.countDocuments(); // 获取用户总数，用于计算总页数
+    const totalCount = await Session.countDocuments(); // 获取总数，用于计算总页数
     const totalPages = Math.ceil(totalCount / pageSize);
 
     if (pageNumber < 1 || pageNumber > totalPages) {
-      return res.status(400).json({ error: 'Invalid page number' });
+      return res.status(404).json([]);
     }
 
     const sessions = await Session.find()
@@ -40,6 +40,9 @@ export const getAllSessionsByUserId = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
 
@@ -55,11 +58,11 @@ export const getAllSessionsByUserId = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User has no session' });
     }
 
-    const totalCount = user.mail_sessions.length; // 获取用户总数，用于计算总页数
+    const totalCount = user.mail_sessions.length; // 获取总数，用于计算总页数
     const totalPages = Math.ceil(totalCount / pageSize);
 
     if (pageNumber < 1 || pageNumber > totalPages) {
-      return res.status(400).json({ error: 'Invalid page number' });
+      return res.status(404).json([]);
     }
 
     // 分页返回user中的mail_sessions
@@ -69,7 +72,56 @@ export const getAllSessionsByUserId = async (req: Request, res: Response) => {
       .exec();
 
     res.status(200).json(sessions);
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error in getAllSessionsByUserId:', error);
+    res.status(500).json({ error });
+  }
+};
+
+// 获取状态是unbanned用户的聊天session
+export const getAllActiveSessionsByUserId = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const user = await User.findById(userId).exec();
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const { page } = req.query; // 获取请求中的页码参数
+    const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
+
+    if (user.mail_sessions.length === 0) {
+      return res.status(404).json({ error: 'User has no session' });
+    }
+
+    const totalCount = user.mail_sessions.length; // 获取总数，用于计算总页数
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    if (pageNumber < 1 || pageNumber > totalPages) {
+      return res.status(404).json([]);
+    }
+
+    // 分页返回user中的mail_sessions
+    const sessions = await Session.find({
+      _id: { $in: user.mail_sessions },
+      banned: false, // 确保会话未被封禁
+    })
+      .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
+      .limit(pageSize) // 限制返回的文档数量
+      .exec();
+
+    res.status(200).json(sessions);
+  } catch (error: any) {
     console.error('Error in getAllSessionsByUserId:', error);
     res.status(500).json({ error });
   }
@@ -82,6 +134,11 @@ export const createSession = async (req: Request, res: Response) => {
 
   try {
     const { latest_sender, latest_receiver } = req.body;
+    if (!latest_sender && !latest_receiver) {
+      return res
+        .status(400)
+        .json({ error: 'latest_sender and latest_receiver ID required' });
+    }
     if (
       !mongoose.Types.ObjectId.isValid(latest_sender) &&
       !mongoose.Types.ObjectId.isValid(latest_receiver)
@@ -150,7 +207,7 @@ export const createSession = async (req: Request, res: Response) => {
     session.endSession();
 
     res.status(201).json(newSession);
-  } catch (error) {
+  } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
 
@@ -163,6 +220,9 @@ export const createSession = async (req: Request, res: Response) => {
 export const updateSessionById = async (req: Request, res: Response) => {
   try {
     const { sessionId } = req.params;
+    if (!sessionId) {
+      return res.status(400).json({ error: 'session ID required' });
+    }
     if (!mongoose.Types.ObjectId.isValid(sessionId)) {
       return res.status(400).json({ error: 'Invalid session ID' });
     }
@@ -181,7 +241,7 @@ export const updateSessionById = async (req: Request, res: Response) => {
       },
     ).exec();
     res.status(200).json(updatedSession);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in updateSessionById:', error);
     res.status(500).json({ error });
   }
@@ -191,6 +251,9 @@ export const updateSessionById = async (req: Request, res: Response) => {
 export const updateSessionStatusById = async (req: Request, res: Response) => {
   try {
     const { sessionId } = req.params;
+    if (!sessionId) {
+      return res.status(400).json({ error: 'session ID required' });
+    }
     if (!mongoose.Types.ObjectId.isValid(sessionId)) {
       return res.status(400).json({ error: 'Invalid session ID' });
     }
@@ -209,7 +272,7 @@ export const updateSessionStatusById = async (req: Request, res: Response) => {
       },
     ).exec();
     res.status(200).json(updatedSession);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in updateSessionStatusById:', error);
     res.status(500).json({ error });
   }

@@ -9,6 +9,7 @@ import {
 } from '../validations/userValidate';
 import { generateToken } from '../utils/jwt';
 import { pageSize } from '../constants/settings';
+import mongoose from 'mongoose';
 
 export const userSignup = async (req: Request, res: Response) => {
   try {
@@ -79,8 +80,12 @@ export const updateUserById = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
+
     const validBody = await updateUserSchemaValidate.validateAsync(req.body, {
       allowUnknown: true,
       stripUnknown: true,
@@ -107,8 +112,12 @@ export const updateUserPasswordById = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
+
     const validBody = await updateUserPasswordSchemaValidate.validateAsync(
       req.body,
       {
@@ -134,8 +143,12 @@ export const updateUserStatusById = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
+
     const validBody = await updateUserStatusSchemaValidate.validateAsync(
       req.body,
       {
@@ -162,8 +175,9 @@ export const getAllUsers = async (req: Request, res: Response) => {
     const totalCount = await User.countDocuments(); // 获取用户总数，用于计算总页数
     const totalPages = Math.ceil(totalCount / pageSize);
 
+    // 如果请求的页码超出了实际存在的页数，返回一个空数组
     if (pageNumber < 1 || pageNumber > totalPages) {
-      return res.status(400).json({ error: 'Invalid page number' });
+      return res.status(404).json([]);
     }
 
     let queryConditions: any = {};
@@ -206,7 +220,7 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
     const totalPages = Math.ceil(totalCount / pageSize);
 
     if (pageNumber < 1 || pageNumber > totalPages) {
-      return res.status(400).json({ error: 'Invalid page number' });
+      return res.status(404).json([]);
     }
 
     let queryConditions: any = { active: true };
@@ -252,8 +266,12 @@ export const getRandomUser = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
+
     const user = await User.findById(userId).exec();
 
     if (!user) {
@@ -300,8 +318,12 @@ export const getUserById = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
+
     const user = await User.findById(userId).exec();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
