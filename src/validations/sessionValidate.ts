@@ -13,10 +13,6 @@ export const updateSessionSchemaValidate = joi.object({
   latest_message: joi.string().optional(),
   timestamp: joi.date().optional(),
   all_messages: joi.array().optional(),
-});
-
-// update session status
-export const updateSessionStatusSchemaValidate = joi.object({
   unread: joi.boolean().optional(),
   banned: joi.boolean().optional(),
 });

@@ -6,7 +6,6 @@ import mongoose from 'mongoose';
 import {
   createSessionSchemaValidate,
   updateSessionSchemaValidate,
-  updateSessionStatusSchemaValidate,
 } from '../validations/sessionValidate';
 import SessionModel from '../interfaces/SessionModel';
 
@@ -243,37 +242,6 @@ export const updateSessionById = async (req: Request, res: Response) => {
     res.status(200).json(updatedSession);
   } catch (error: any) {
     console.error('Error in updateSessionById:', error);
-    res.status(500).json({ error });
-  }
-};
-
-// 根据sessionId更新session status
-export const updateSessionStatusById = async (req: Request, res: Response) => {
-  try {
-    const { sessionId } = req.params;
-    if (!sessionId) {
-      return res.status(400).json({ error: 'session ID required' });
-    }
-    if (!mongoose.Types.ObjectId.isValid(sessionId)) {
-      return res.status(400).json({ error: 'Invalid session ID' });
-    }
-    const validBody = await updateSessionStatusSchemaValidate.validateAsync(
-      req.body,
-      {
-        allowUnknown: true,
-        stripUnknown: true,
-      },
-    );
-    const updatedSession = await Session.findByIdAndUpdate(
-      sessionId,
-      validBody,
-      {
-        new: true,
-      },
-    ).exec();
-    res.status(200).json(updatedSession);
-  } catch (error: any) {
-    console.error('Error in updateSessionStatusById:', error);
     res.status(500).json({ error });
   }
 };

@@ -23,6 +23,11 @@ const connectToDB = async () => {
         .collection('payments')
         .createIndex({ payment_date: -1 });
 
+      // 创建 active 字段的索引
+      await mongoose.connection.db
+        .collection('users')
+        .createIndex({ active: 1 });
+
       // 创建 country 字段的索引
       await mongoose.connection.db
         .collection('users')

@@ -3,9 +3,7 @@ import bcrypt from 'bcrypt';
 import User from '../models/userModel';
 import {
   newUserSchemaValidate,
-  updateUserPasswordSchemaValidate,
   updateUserSchemaValidate,
-  updateUserStatusSchemaValidate,
 } from '../validations/userValidate';
 import { generateToken } from '../utils/jwt';
 import { pageSize } from '../constants/settings';
@@ -91,6 +89,12 @@ export const updateUserById = async (req: Request, res: Response) => {
       stripUnknown: true,
     });
 
+    // 如果请求中包含密码，对密码进行哈希处理
+    const { password } = validBody;
+    if (validBody.password) {
+      validBody.password = await bcrypt.hash(password, 10);
+    }
+
     // 根据生日计算年龄
     const { birthday } = validBody;
     const birthdayDate = new Date(birthday);
@@ -108,68 +112,11 @@ export const updateUserById = async (req: Request, res: Response) => {
   }
 };
 
-export const updateUserPasswordById = async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.params;
-    if (!userId) {
-      return res.status(400).json({ error: 'user ID required' });
-    }
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'Invalid user ID' });
-    }
-
-    const validBody = await updateUserPasswordSchemaValidate.validateAsync(
-      req.body,
-      {
-        allowUnknown: true,
-        stripUnknown: true,
-      },
-    );
-    const { password } = validBody;
-    if (password) {
-      validBody.password = await bcrypt.hash(password, 10);
-    }
-    const updatedUser = await User.findByIdAndUpdate(userId, validBody, {
-      new: true,
-    }).exec();
-    res.status(200).json(updatedUser);
-  } catch (error: any) {
-    console.error('Error in updateUserPasswordById:', error);
-    res.status(400).json({ error });
-  }
-};
-
-export const updateUserStatusById = async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.params;
-    if (!userId) {
-      return res.status(400).json({ error: 'user ID required' });
-    }
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'Invalid user ID' });
-    }
-
-    const validBody = await updateUserStatusSchemaValidate.validateAsync(
-      req.body,
-      {
-        allowUnknown: true,
-        stripUnknown: true,
-      },
-    );
-    const updatedUser = await User.findByIdAndUpdate(userId, validBody, {
-      new: true,
-    }).exec();
-    res.status(200).json(updatedUser);
-  } catch (error: any) {
-    console.error('Error in updateUserStatusById:', error);
-    res.status(400).json({ error });
-  }
-};
-
 // get all users with pagination
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const { page, username } = req.query; // 获取请求中的页码参数
+    const { page } = req.query; // 获取请求中的页码参数
+    const { username } = req.body;
     const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
 
     const totalCount = await User.countDocuments(); // 获取用户总数，用于计算总页数
@@ -264,7 +211,7 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
 // get random active user by country and city
 export const getRandomUser = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.body;
     if (!userId) {
       return res.status(400).json({ error: 'user ID required' });
     }
@@ -325,6 +272,28 @@ export const getUserById = async (req: Request, res: Response) => {
     }
 
     const user = await User.findById(userId).exec();
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.status(200).json(user);
+  } catch (error: any) {
+    console.error('Error in getUserById:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// get active user by id
+export const getActiveUserById = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const user = await User.findOne({ _id: userId, active: true }).exec();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
