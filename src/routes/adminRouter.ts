@@ -12,7 +12,7 @@ adminRouter.post('/signup', adminSignup);
 
 adminRouter.post('/login', adminLogin);
 
-adminRouter.post('/:adminId', updateAdminById);
+adminRouter.put('/:adminId', updateAdminById);
 
 adminRouter.get('/users', getAllUsers);
 

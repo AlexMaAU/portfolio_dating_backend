@@ -14,7 +14,7 @@ userRouter.post('/signup', userSignup);
 
 userRouter.post('/login', userLogin);
 
-userRouter.post('/:userId', updateUserById);
+userRouter.put('/:userId', updateUserById);
 
 userRouter.get('/', getFilteredUsers);
 
