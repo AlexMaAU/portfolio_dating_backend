@@ -19,6 +19,7 @@ export const updateUserSchemaValidate = joi.object({
   birthday: joi.string().optional(),
   age: joi.string().optional(),
   height: joi.string().optional(),
+  body_type: joi.string().optional(),
   income: joi.string().optional(),
   education: joi.string().optional(),
   school_name: joi.string().optional(),

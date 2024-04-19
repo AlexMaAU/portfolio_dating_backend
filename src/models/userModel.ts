@@ -70,6 +70,10 @@ const userSchema = new Schema({
     type: String,
     default: null,
   },
+  body_type: {
+    type: String,
+    default: null,
+  },
   income: {
     type: String,
     default: null,
