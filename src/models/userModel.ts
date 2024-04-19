@@ -105,7 +105,7 @@ const userSchema = new Schema({
   },
   recommend_limit: {
     type: Number,
-    default: 15,
+    default: 100,
   },
   liked: {
     type: [

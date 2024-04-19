@@ -53,16 +53,6 @@ export const userLogin = async (req: Request, res: Response) => {
       role: 'user',
     });
 
-    // 如果距离上次登录24小时，则自动更新用户的recommend_limit记录到15，然后更新用户的最后登录时间到最新记录
-    if (user.last_login) {
-      const lastLogin = user.last_login;
-      const twentyFourHoursAgo = new Date();
-      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-      if (lastLogin < twentyFourHoursAgo) {
-        user.recommend_limit = 15; // 更新 recommend_limit
-      }
-    }
-
     // 更新最后登录时间
     user.last_login = new Date();
     await user.save();
