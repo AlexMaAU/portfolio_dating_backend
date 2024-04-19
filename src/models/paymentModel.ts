@@ -8,7 +8,7 @@ const paymentSchema = new Schema({
     required: true,
   },
   payment_date: {
-    type: String,
+    type: Date,
     default: Date.now,
   },
   amount: {

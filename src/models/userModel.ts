@@ -144,11 +144,11 @@ const userSchema = new Schema({
     default: [],
   },
   register_date: {
-    type: String,
+    type: Date,
     default: Date.now,
   },
   last_login: {
-    type: String,
+    type: Date,
     default: null,
   },
 });

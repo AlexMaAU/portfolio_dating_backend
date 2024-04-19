@@ -55,7 +55,7 @@ export const userLogin = async (req: Request, res: Response) => {
 
     // 如果距离上次登录24小时，则自动更新用户的recommend_limit记录到15，然后更新用户的最后登录时间到最新记录
     if (user.last_login) {
-      const lastLogin = new Date(user.last_login); // 将用户最后登录时间解析为日期对象
+      const lastLogin = user.last_login;
       const twentyFourHoursAgo = new Date();
       twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
       if (lastLogin < twentyFourHoursAgo) {
@@ -64,7 +64,7 @@ export const userLogin = async (req: Request, res: Response) => {
     }
 
     // 更新最后登录时间
-    user.last_login = new Date().toISOString();
+    user.last_login = new Date();
     await user.save();
 
     res.status(200).json({ user, token });

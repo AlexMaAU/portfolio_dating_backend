@@ -18,7 +18,7 @@ const sessionSchema = new Schema({
     default: null,
   },
   timestamp: {
-    type: String,
+    type: Date,
     default: Date.now,
   },
   unread: {
