@@ -22,12 +22,44 @@ export const userSignup = async (req: Request, res: Response) => {
     }
     validBody.password = await bcrypt.hash(password, 10);
     const newUser = await new User(validBody).save();
+    const safeNewUser = {
+      _id: newUser._id,
+      active: newUser.active,
+      is_vip: newUser.is_vip,
+      email: newUser.email,
+      username: newUser.username,
+      country: newUser.country,
+      city: newUser.city,
+      visa_type: newUser.visa_type,
+      profile_photo: newUser.profile_photo,
+      gallery_photos: newUser.gallery_photos,
+      gender: newUser.gender,
+      seek_gender: newUser.seek_gender,
+      birthday: newUser.birthday,
+      age: newUser.age,
+      height: newUser.height,
+      income: newUser.income,
+      education: newUser.education,
+      school_name: newUser.school_name,
+      industry: newUser.industry,
+      hobbies: newUser.hobbies,
+      self_introduction: newUser.self_introduction,
+      looking_for: newUser.looking_for,
+      serious_dating: newUser.serious_dating,
+      recommend_limit: newUser.recommend_limit,
+      liked: newUser.liked,
+      liked_me: newUser.liked_me,
+      matches: newUser.matches,
+      mail_sessions: newUser.mail_sessions,
+      last_login: newUser.last_login,
+      profile_completed: newUser.profile_completed,
+    };
     const token = generateToken({
       id: newUser._id,
       email: newUser.email,
       role: 'user',
     });
-    res.status(201).json({ newUser, token });
+    res.status(201).json({ safeNewUser, token });
   } catch (error: any) {
     console.error('Error in userSignup:', error);
     res.status(400).json({ error });
@@ -57,7 +89,40 @@ export const userLogin = async (req: Request, res: Response) => {
     user.last_login = new Date();
     await user.save();
 
-    res.status(200).json({ user, token });
+    const safeUser = {
+      _id: user._id,
+      active: user.active,
+      is_vip: user.is_vip,
+      email: user.email,
+      username: user.username,
+      country: user.country,
+      city: user.city,
+      visa_type: user.visa_type,
+      profile_photo: user.profile_photo,
+      gallery_photos: user.gallery_photos,
+      gender: user.gender,
+      seek_gender: user.seek_gender,
+      birthday: user.birthday,
+      age: user.age,
+      height: user.height,
+      income: user.income,
+      education: user.education,
+      school_name: user.school_name,
+      industry: user.industry,
+      hobbies: user.hobbies,
+      self_introduction: user.self_introduction,
+      looking_for: user.looking_for,
+      serious_dating: user.serious_dating,
+      recommend_limit: user.recommend_limit,
+      liked: user.liked,
+      liked_me: user.liked_me,
+      matches: user.matches,
+      mail_sessions: user.mail_sessions,
+      last_login: user.last_login,
+      profile_completed: user.profile_completed,
+    };
+
+    res.status(200).json({ safeUser, token });
   } catch (error: any) {
     console.error('Error in userLogin:', error);
     res.status(400).json({ error });
@@ -92,9 +157,30 @@ export const updateUserById = async (req: Request, res: Response) => {
     const age = currentDate.getFullYear() - birthdayDate.getFullYear();
     validBody.age = age;
 
+    // 如果用户完善了基本信息，则profile_completed设为true
+    if (
+      validBody.username &&
+      validBody.city &&
+      validBody.visa_type &&
+      validBody.profile_photo &&
+      validBody.gender &&
+      validBody.seek_gender &&
+      validBody.birthday &&
+      validBody.height &&
+      validBody.income &&
+      validBody.industry
+    ) {
+      validBody.profile_completed = true;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(userId, validBody, {
       new: true,
-    }).exec();
+    })
+      .select(
+        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education school_name industry hobbies self_introduction looking_for serious_dating recommend_limit last_login profile_completed',
+      )
+      .exec();
+
     res.status(200).json(updatedUser);
   } catch (error: any) {
     console.error('Error in updateUserById:', error);
@@ -123,6 +209,9 @@ export const getAllUsers = async (req: Request, res: Response) => {
     }
 
     const users = await User.find(queryConditions)
+      .select(
+        '_id active is_vip email country username city profile_photo gender seek_gender recommend_limit last_login register_date profile_completed',
+      )
       .sort({ register_date: -1 }) // 按注册日期从新到旧排序
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
@@ -140,11 +229,13 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
   try {
     const { page } = req.query; // 获取请求中的页码参数
     const {
-      country,
+      userId,
+      country, // 默认值，从user中获得，不需要选择
       city,
       minAge,
       maxAge,
-      gender,
+      gender, // 默认值，从user中获得，不需要选择
+      seek_gender, // 默认值，从user中获得，不需要选择
       minHeight,
       maxHeight,
       income,
@@ -160,7 +251,11 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
       return res.status(404).json([]);
     }
 
-    let queryConditions: any = { active: true };
+    let queryConditions: any = {
+      active: true,
+      profile_completed: true,
+      _id: { $ne: userId }, // 排除当前用户
+    };
     if (country) {
       queryConditions.country = country;
     }
@@ -186,7 +281,37 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
       queryConditions.serious_dating = serious_dating;
     }
 
+    // 根据用户的性别和期望的匹配性别动态设置查询条件
+    // 如果用户是男性
+    if (gender && gender === 'male') {
+      // 如果期望的匹配性别是女性
+      if (seek_gender === 'female') {
+        // 查询条件中设置用户性别为女性，期望匹配性别为男性
+        queryConditions.gender = 'female';
+        queryConditions.seek_gender = 'male';
+      } else if (seek_gender === 'male') {
+        // 如果期望的匹配性别是男性
+        queryConditions.gender = 'male'; // 查询条件中设置用户性别为男性，期望匹配性别为男性
+        queryConditions.seek_gender = 'male';
+      }
+    } else if (gender && gender === 'female') {
+      // 如果用户是女性
+      // 如果期望的匹配性别是男性
+      if (seek_gender === 'male') {
+        // 查询条件中设置用户性别为男性，期望匹配性别为女性
+        queryConditions.gender = 'male';
+        queryConditions.seek_gender = 'female';
+      } else if (seek_gender === 'female') {
+        // 如果期望的匹配性别是女性
+        queryConditions.gender = 'female'; // 查询条件中设置用户性别为女性，期望匹配性别为女性
+        queryConditions.seek_gender = 'female';
+      }
+    }
+
     const users = await User.find(queryConditions)
+      .select(
+        '_id active is_vip country username city visa_type profile_photo gender seek_gender age height income education industry hobbies serious_dating last_login profile_completed',
+      )
       .sort({ register_date: -1 }) // 按注册日期从新到旧排序
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
@@ -201,7 +326,8 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
 // get random active user by country and city
 export const getRandomUser = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.body;
+    const { userId, country, city, gender, seek_gender } = req.body;
+
     if (!userId) {
       return res.status(400).json({ error: 'user ID required' });
     }
@@ -224,15 +350,50 @@ export const getRandomUser = async (req: Request, res: Response) => {
     user.recommend_limit -= 1;
     await user.save();
 
-    const { country, city } = req.body;
-    let queryConditions: any = { active: true };
+    let queryConditions: any = {
+      active: true,
+      profile_completed: true,
+      _id: { $ne: userId }, // 排除当前用户
+    };
     if (country) {
       queryConditions.country = country;
     }
     if (city) {
       queryConditions.city = city;
     }
-    const users = await User.find(queryConditions).exec();
+
+    // 根据用户的性别和期望的匹配性别动态设置查询条件
+    // 如果用户是男性
+    if (gender && gender === 'male') {
+      // 如果期望的匹配性别是女性
+      if (seek_gender === 'female') {
+        // 查询条件中设置用户性别为女性，期望匹配性别为男性
+        queryConditions.gender = 'female';
+        queryConditions.seek_gender = 'male';
+      } else if (seek_gender === 'male') {
+        // 如果期望的匹配性别是男性
+        queryConditions.gender = 'male'; // 查询条件中设置用户性别为男性，期望匹配性别为男性
+        queryConditions.seek_gender = 'male';
+      }
+    } else if (gender && gender === 'female') {
+      // 如果用户是女性
+      // 如果期望的匹配性别是男性
+      if (seek_gender === 'male') {
+        // 查询条件中设置用户性别为男性，期望匹配性别为女性
+        queryConditions.gender = 'male';
+        queryConditions.seek_gender = 'female';
+      } else if (seek_gender === 'female') {
+        // 如果期望的匹配性别是女性
+        queryConditions.gender = 'female'; // 查询条件中设置用户性别为女性，期望匹配性别为女性
+        queryConditions.seek_gender = 'female';
+      }
+    }
+
+    const users = await User.find(queryConditions)
+      .select(
+        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education school_name industry hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+      )
+      .exec();
 
     // 如果没有找到用户，返回空数组
     if (users.length === 0) {
@@ -261,7 +422,11 @@ export const getUserById = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
 
-    const user = await User.findById(userId).exec();
+    const user = await User.findById(userId)
+      .select(
+        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education school_name industry hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+      )
+      .exec();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -283,7 +448,15 @@ export const getActiveUserById = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
 
-    const user = await User.findOne({ _id: userId, active: true }).exec();
+    const user = await User.findOne({
+      _id: userId,
+      active: true,
+      profile_completed: true,
+    })
+      .select(
+        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education school_name industry hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+      )
+      .exec();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }

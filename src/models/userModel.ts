@@ -54,6 +54,10 @@ const userSchema = new Schema({
     type: String,
     default: null,
   },
+  seek_gender: {
+    type: String,
+    default: null,
+  },
   birthday: {
     type: String,
     default: null,
@@ -142,6 +146,10 @@ const userSchema = new Schema({
       },
     ],
     default: [],
+  },
+  profile_completed: {
+    type: Boolean,
+    default: false,
   },
   register_date: {
     type: Date,

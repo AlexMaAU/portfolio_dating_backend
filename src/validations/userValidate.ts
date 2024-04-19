@@ -15,6 +15,7 @@ export const updateUserSchemaValidate = joi.object({
   profile_photo: joi.string().optional(),
   gallery_photos: joi.array().optional(),
   gender: joi.string().optional(),
+  seek_gender: joi.string().optional(),
   birthday: joi.string().optional(),
   age: joi.string().optional(),
   height: joi.string().optional(),

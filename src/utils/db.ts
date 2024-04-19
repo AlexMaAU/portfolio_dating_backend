@@ -49,6 +49,11 @@ const connectToDB = async () => {
         .collection('users')
         .createIndex({ gender: 1 });
 
+      // 创建 seek_gender 字段的索引
+      await mongoose.connection.db
+        .collection('users')
+        .createIndex({ seek_gender: 1 });
+
       // 创建 income 字段的索引
       await mongoose.connection.db
         .collection('users')
@@ -78,6 +83,11 @@ const connectToDB = async () => {
       await mongoose.connection.db
         .collection('users')
         .createIndex({ email: 1 });
+
+      // 创建 profile_completed 字段的索引
+      await mongoose.connection.db
+        .collection('users')
+        .createIndex({ profile_completed: 1 });
 
       // 创建 all_messages 字段的索引
       await mongoose.connection.db
