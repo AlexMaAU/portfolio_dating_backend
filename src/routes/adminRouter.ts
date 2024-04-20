@@ -1,4 +1,5 @@
 import express from 'express';
+import adminAuthGuard from '../middlewares/adminAuthMiddleware';
 import { getAllUsers, getUserById } from '../controllers/users';
 import {
   adminLogin,
@@ -16,15 +17,15 @@ adminRouter.post('/signup', adminSignup);
 
 adminRouter.post('/login', adminLogin);
 
-adminRouter.put('/:adminId', updateAdminById);
+adminRouter.put('/:adminId', adminAuthGuard, updateAdminById);
 
-adminRouter.get('/users', getAllUsers);
+adminRouter.get('/users', adminAuthGuard, getAllUsers);
 
-adminRouter.get('/users/:userId', getUserById);
+adminRouter.get('/users/:userId', adminAuthGuard, getUserById);
 
-adminRouter.get('/sessions/:userId', getAllSessionsByUserId);
+adminRouter.get('/sessions/:userId', adminAuthGuard, getAllSessionsByUserId);
 
-adminRouter.get('/sessions', getAllSessions);
+adminRouter.get('/sessions', adminAuthGuard, getAllSessions);
 
 export default adminRouter;
 

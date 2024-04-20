@@ -1,4 +1,5 @@
 import express from 'express';
+import userAuthGuard from '../middlewares/userAuthMiddleware';
 import {
   getActiveUserById,
   getFilteredUsers,
@@ -14,13 +15,13 @@ userRouter.post('/signup', userSignup);
 
 userRouter.post('/login', userLogin);
 
-userRouter.put('/:userId', updateUserById);
+userRouter.put('/:userId', userAuthGuard, updateUserById);
 
-userRouter.get('/', getFilteredUsers);
+userRouter.get('/', userAuthGuard, getFilteredUsers);
 
-userRouter.get('/recommend', getRandomUser);
+userRouter.get('/recommend', userAuthGuard, getRandomUser);
 
-userRouter.get('/:userId', getActiveUserById);
+userRouter.get('/:userId', userAuthGuard, getActiveUserById);
 
 export default userRouter;
 
