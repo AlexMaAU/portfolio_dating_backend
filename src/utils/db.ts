@@ -94,6 +94,11 @@ const connectToDB = async () => {
         .collection('sessions')
         .createIndex({ all_messages: 1 });
 
+      // 创建 banned 字段的索引
+      await mongoose.connection.db
+        .collection('sessions')
+        .createIndex({ banned: 1 });
+
       console.log('Index created successfully');
     } catch (error) {
       console.error('Error creating index:', error);

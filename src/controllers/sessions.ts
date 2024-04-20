@@ -124,6 +124,14 @@ export const getAllActiveSessionsByUserId = async (
       .select(
         '_id latest_sender latest_receiver latest_message timestamp unread banned',
       )
+      .populate({
+        path: 'latest_sender',
+        select: '_id username profile_photo gender',
+      })
+      .populate({
+        path: 'latest_receiver',
+        select: '_id username profile_photo gender',
+      })
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
       .exec();
@@ -250,3 +258,4 @@ export const updateSessionStatusById = async (req: Request, res: Response) => {
     res.status(500).json({ error });
   }
 };
+

@@ -59,6 +59,15 @@ export const createMessageForSession = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid session ID' });
     }
 
+    // check if session exists and not banned
+    const foundSession = await Session.findById(sessionId).exec();
+    if (!foundSession) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    if (foundSession.banned) {
+      return res.status(400).json({ error: 'Session is banned' });
+    }
+
     const { latest_sender, latest_receiver, latest_message } = req.body;
 
     if (!latest_sender || !latest_receiver || !latest_message) {
@@ -125,4 +134,3 @@ export const createMessageForSession = async (req: Request, res: Response) => {
     res.status(500).json({ error });
   }
 };
-
