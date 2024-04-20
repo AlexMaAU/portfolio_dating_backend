@@ -109,7 +109,9 @@ export const createMessageForSession = async (req: Request, res: Response) => {
         },
       },
       { new: true, session },
-    ).exec();
+    )
+      .populate('all_messages')
+      .exec();
 
     await session.commitTransaction();
     session.endSession();
