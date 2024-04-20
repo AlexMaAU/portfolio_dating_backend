@@ -5,7 +5,7 @@ import User from '../models/userModel';
 import mongoose from 'mongoose';
 import {
   createSessionSchemaValidate,
-  updateSessionSchemaValidate,
+  updateSessionStatusSchemaValidate,
 } from '../validations/sessionValidate';
 import SessionModel from '../interfaces/SessionModel';
 
@@ -34,7 +34,7 @@ export const getAllSessions = async (req: Request, res: Response) => {
   }
 };
 
-// 获取用户的聊天session
+// 获取用户的聊天session - admin
 export const getAllSessionsByUserId = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
@@ -215,8 +215,8 @@ export const createSession = async (req: Request, res: Response) => {
   }
 };
 
-// 根据sessionId更新session
-export const updateSessionById = async (req: Request, res: Response) => {
+// 根据sessionId更新session status
+export const updateSessionStatusById = async (req: Request, res: Response) => {
   try {
     const { sessionId } = req.params;
     if (!sessionId) {
@@ -225,7 +225,7 @@ export const updateSessionById = async (req: Request, res: Response) => {
     if (!mongoose.Types.ObjectId.isValid(sessionId)) {
       return res.status(400).json({ error: 'Invalid session ID' });
     }
-    const validBody = await updateSessionSchemaValidate.validateAsync(
+    const validBody = await updateSessionStatusSchemaValidate.validateAsync(
       req.body,
       {
         allowUnknown: true,
@@ -246,3 +246,4 @@ export const updateSessionById = async (req: Request, res: Response) => {
   }
 };
 
+// TO DO: 根据sessionId分页查看所有的message

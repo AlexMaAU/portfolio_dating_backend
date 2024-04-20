@@ -32,8 +32,8 @@ const sessionSchema = new Schema({
   all_messages: {
     type: [
       {
-        type: Schema.Types.ObjectId,
-        ref: 'Message',
+        type: String,
+        default: null,
       },
     ],
     default: [],

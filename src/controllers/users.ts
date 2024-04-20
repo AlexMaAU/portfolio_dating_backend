@@ -38,11 +38,9 @@ export const userSignup = async (req: Request, res: Response) => {
       birthday: newUser.birthday,
       age: newUser.age,
       height: newUser.height,
-      body_type: newUser.body_type,
       income: newUser.income,
       education: newUser.education,
-      school_name: newUser.school_name,
-      industry: newUser.industry,
+      job_title: newUser.job_title,
       hobbies: newUser.hobbies,
       self_introduction: newUser.self_introduction,
       looking_for: newUser.looking_for,
@@ -106,11 +104,9 @@ export const userLogin = async (req: Request, res: Response) => {
       birthday: user.birthday,
       age: user.age,
       height: user.height,
-      body_type: user.body_type,
       income: user.income,
       education: user.education,
-      school_name: user.school_name,
-      industry: user.industry,
+      job_title: user.job_title,
       hobbies: user.hobbies,
       self_introduction: user.self_introduction,
       looking_for: user.looking_for,
@@ -171,7 +167,7 @@ export const updateUserById = async (req: Request, res: Response) => {
       validBody.height &&
       validBody.body_type &&
       validBody.income &&
-      validBody.industry
+      validBody.job_title
     ) {
       validBody.profile_completed = true;
     }
@@ -180,7 +176,7 @@ export const updateUserById = async (req: Request, res: Response) => {
       new: true,
     })
       .select(
-        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height body_type income education school_name industry hobbies self_introduction looking_for serious_dating recommend_limit last_login profile_completed',
+        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit last_login profile_completed',
       )
       .exec();
 
@@ -241,7 +237,6 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
       seek_gender, // 默认值，从user中获得，不需要选择
       minHeight,
       maxHeight,
-      body_type,
       income,
       visa_type,
       serious_dating,
@@ -274,9 +269,6 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
     }
     if (minHeight && maxHeight) {
       queryConditions.height = { $gte: minHeight, $lte: maxHeight };
-    }
-    if (body_type) {
-      queryConditions.body_type = body_type;
     }
     if (income && income.length > 0) {
       queryConditions.income = { $in: income };
@@ -317,7 +309,7 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
 
     const users = await User.find(queryConditions)
       .select(
-        '_id active is_vip country username city visa_type profile_photo gender seek_gender age height body_type income education industry hobbies serious_dating last_login profile_completed',
+        '_id active is_vip country username city visa_type profile_photo gender seek_gender age height income education job_title hobbies serious_dating last_login profile_completed',
       )
       .sort({ register_date: -1 }) // 按注册日期从新到旧排序
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
@@ -398,7 +390,7 @@ export const getRandomUser = async (req: Request, res: Response) => {
 
     const users = await User.find(queryConditions)
       .select(
-        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height body_type income education school_name industry hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
 
@@ -431,7 +423,7 @@ export const getUserById = async (req: Request, res: Response) => {
 
     const user = await User.findById(userId)
       .select(
-        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height body_type income education school_name industry hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
     if (!user) {
@@ -461,7 +453,7 @@ export const getActiveUserById = async (req: Request, res: Response) => {
       profile_completed: true,
     })
       .select(
-        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height body_type income education school_name industry hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
     if (!user) {

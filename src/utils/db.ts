@@ -44,11 +44,6 @@ const connectToDB = async () => {
         .collection('users')
         .createIndex({ height: 1 });
 
-      // 创建 body_type 字段的索引
-      await mongoose.connection.db
-        .collection('users')
-        .createIndex({ body_type: 1 });
-
       // 创建 gender 字段的索引
       await mongoose.connection.db
         .collection('users')
