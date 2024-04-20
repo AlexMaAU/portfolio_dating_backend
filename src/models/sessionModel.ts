@@ -28,6 +28,7 @@ const sessionSchema = new Schema({
   banned: {
     type: Boolean,
     default: false,
+    index: true,
   },
   all_messages: {
     type: [
@@ -37,6 +38,7 @@ const sessionSchema = new Schema({
       },
     ],
     default: [],
+    index: true,
   },
 });
 

@@ -10,6 +10,7 @@ const paymentSchema = new Schema({
   payment_date: {
     type: Date,
     default: Date.now,
+    index: -1,
   },
   amount: {
     type: String,

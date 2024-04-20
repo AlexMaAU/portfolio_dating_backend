@@ -4,6 +4,7 @@ const userSchema = new Schema({
   active: {
     type: Boolean,
     default: true,
+    index: true,
   },
   is_vip: {
     type: Boolean,
@@ -24,18 +25,22 @@ const userSchema = new Schema({
   country: {
     type: String,
     default: 'Australia',
+    index: true,
   },
   username: {
     type: String,
     default: 'New User',
+    index: true,
   },
   city: {
     type: String,
     default: null,
+    index: true,
   },
   visa_type: {
     type: String,
     default: null,
+    index: true,
   },
   profile_photo: {
     type: String,
@@ -53,10 +58,12 @@ const userSchema = new Schema({
   gender: {
     type: String,
     default: null,
+    index: true,
   },
   seek_gender: {
     type: String,
     default: null,
+    index: true,
   },
   birthday: {
     type: String,
@@ -65,14 +72,17 @@ const userSchema = new Schema({
   age: {
     type: String,
     default: null,
+    index: true,
   },
   height: {
     type: String,
     default: null,
+    index: true,
   },
   income: {
     type: String,
     default: null,
+    index: true,
   },
   education: {
     type: String,
@@ -102,6 +112,7 @@ const userSchema = new Schema({
   serious_dating: {
     type: Boolean,
     default: false,
+    index: true,
   },
   recommend_limit: {
     type: Number,
@@ -142,14 +153,17 @@ const userSchema = new Schema({
       },
     ],
     default: [],
+    index: true,
   },
   profile_completed: {
     type: Boolean,
     default: false,
+    index: true,
   },
   register_date: {
     type: Date,
     default: Date.now,
+    index: -1,
   },
   last_login: {
     type: Date,
