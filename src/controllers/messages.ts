@@ -59,16 +59,9 @@ export const createMessageForSession = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid session ID' });
     }
 
-    const validBody = await createMessageSchemaValidate.validateAsync(
-      req.body,
-      {
-        allowUnknown: true,
-        stripUnknown: true,
-      },
-    );
-    const { latest_sender, latest_receiver, content } = validBody;
+    const { latest_sender, latest_receiver, latest_message } = req.body;
 
-    if (!latest_sender && !latest_receiver && !content) {
+    if (!latest_sender || !latest_receiver || !latest_message) {
       return res
         .status(400)
         .json({ error: 'latest_sender and latest_receiver ID required' });
@@ -83,12 +76,20 @@ export const createMessageForSession = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid session ID' });
     }
 
+    const validBody = await createMessageSchemaValidate.validateAsync(
+      {
+        send_user: latest_sender,
+        receive_user: latest_receiver,
+        content: latest_message,
+      },
+      {
+        allowUnknown: true,
+        stripUnknown: true,
+      },
+    );
+
     // create new message
-    const message = await new Message({
-      send_user: latest_sender,
-      receive_user: latest_receiver,
-      content: content,
-    }).save({ session });
+    const message = await new Message(validBody).save({ session });
 
     // update new message into session by sessionId
     const updatedSession = await Session.findByIdAndUpdate(
@@ -98,8 +99,9 @@ export const createMessageForSession = async (req: Request, res: Response) => {
           //replace original value
           latest_sender: latest_sender,
           latest_receiver: latest_receiver,
-          latest_message: content,
+          latest_message: latest_message,
           unread: true,
+          timestamp: message.timestamp,
         },
         $push: {
           //insert new value to start of all_messages array

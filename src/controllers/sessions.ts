@@ -5,11 +5,11 @@ import User from '../models/userModel';
 import mongoose from 'mongoose';
 import {
   createSessionSchemaValidate,
-  updateSessionStatusSchemaValidate,
+  updateSessionSchemaValidate,
 } from '../validations/sessionValidate';
 import SessionModel from '../interfaces/SessionModel';
 
-// 这个意义不大，要查看聊天session应该是通过用户id来查看的
+// 这个意义不大，要查看聊天session应该是通过用户id来查看的 - admin
 export const getAllSessions = async (req: Request, res: Response) => {
   try {
     const { page } = req.query; // 获取请求中的页码参数
@@ -23,6 +23,9 @@ export const getAllSessions = async (req: Request, res: Response) => {
     }
 
     const sessions = await Session.find()
+      .select(
+        '_id latest_sender latest_receiver latest_message timestamp unread banned',
+      )
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
       .exec();
@@ -66,6 +69,9 @@ export const getAllSessionsByUserId = async (req: Request, res: Response) => {
 
     // 分页返回user中的mail_sessions
     const sessions = await Session.find({ _id: { $in: user.mail_sessions } })
+      .select(
+        '_id latest_sender latest_receiver latest_message timestamp banned',
+      )
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
       .exec();
@@ -115,6 +121,9 @@ export const getAllActiveSessionsByUserId = async (
       _id: { $in: user.mail_sessions },
       banned: false, // 确保会话未被封禁
     })
+      .select(
+        '_id latest_sender latest_receiver latest_message timestamp unread banned',
+      )
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
       .exec();
@@ -133,11 +142,6 @@ export const createSession = async (req: Request, res: Response) => {
 
   try {
     const { latest_sender, latest_receiver } = req.body;
-    if (!latest_sender && !latest_receiver) {
-      return res
-        .status(400)
-        .json({ error: 'latest_sender and latest_receiver ID required' });
-    }
     if (
       !mongoose.Types.ObjectId.isValid(latest_sender) &&
       !mongoose.Types.ObjectId.isValid(latest_receiver)
@@ -152,6 +156,7 @@ export const createSession = async (req: Request, res: Response) => {
 
     // check userId of receive user if existed in session.contact_a or session.contact_b in my user.mail_sessions
     const user = await User.findById(latest_sender)
+      .select('_id mail_sessions')
       .populate('mail_sessions')
       .session(session) // Ensure the session is passed to the query
       .exec();
@@ -225,7 +230,7 @@ export const updateSessionStatusById = async (req: Request, res: Response) => {
     if (!mongoose.Types.ObjectId.isValid(sessionId)) {
       return res.status(400).json({ error: 'Invalid session ID' });
     }
-    const validBody = await updateSessionStatusSchemaValidate.validateAsync(
+    const validBody = await updateSessionSchemaValidate.validateAsync(
       req.body,
       {
         allowUnknown: true,
@@ -245,5 +250,3 @@ export const updateSessionStatusById = async (req: Request, res: Response) => {
     res.status(500).json({ error });
   }
 };
-
-// TO DO: 根据sessionId分页查看所有的message
