@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { JwtPayload } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { generateToken } from '../utils/jwt';
 import {
@@ -68,6 +69,12 @@ export const updateAdminById = async (req: Request, res: Response) => {
     }
     if (!mongoose.Types.ObjectId.isValid(adminId)) {
       return res.status(400).json({ error: 'Invalid admin ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== adminId) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     const validBody = await updateAdminSchemaValidate.validateAsync(req.body, {

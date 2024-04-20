@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { JwtPayload } from 'jsonwebtoken';
 import Payment from '../models/paymentModel';
 import { pageSize } from '../constants/settings';
 import mongoose from 'mongoose';
@@ -8,6 +9,21 @@ import { newPaymentSchemaValidate } from '../validations/paymentValidate';
 export const getAllPayments = async (req: Request, res: Response) => {
   try {
     const { page } = req.query; // 获取请求中的页码参数
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
 
     const totalCount = await Payment.countDocuments(); // 获取用户总数，用于计算总页数
@@ -35,6 +51,21 @@ export const getAllPayments = async (req: Request, res: Response) => {
 export const getPaymentById = async (req: Request, res: Response) => {
   try {
     const { paymentId } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     if (!paymentId) {
       return res.status(400).json({ error: 'payment ID required' });
     }
@@ -57,6 +88,21 @@ export const getPaymentById = async (req: Request, res: Response) => {
 // 创建新的支付记录
 export const createPayment = async (req: Request, res: Response) => {
   try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const validBody = await newPaymentSchemaValidate.validateAsync(req.body, {
       allowUnknown: true,
       stripUnknown: true,

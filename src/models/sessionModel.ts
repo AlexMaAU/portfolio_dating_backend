@@ -15,7 +15,7 @@ const sessionSchema = new Schema({
   },
   latest_message: {
     type: String,
-    default: null,
+    default: '有新的配对了，快来聊天吧！',
   },
   timestamp: {
     type: Date,

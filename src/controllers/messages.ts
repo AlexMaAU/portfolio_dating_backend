@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { JwtPayload } from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import Session from '../models/sessionModel';
 import { pageSize } from '../constants/settings';
@@ -8,6 +9,21 @@ import { createMessageSchemaValidate } from '../validations/messageVlidate';
 export const getAllMessagesOfSession = async (req: Request, res: Response) => {
   try {
     const { sessionId } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     if (!sessionId) {
       return res.status(400).json({ error: 'session ID required' });
     }
@@ -52,23 +68,14 @@ export const createMessageForSession = async (req: Request, res: Response) => {
 
   try {
     const { sessionId } = req.params;
+    const { latest_sender, latest_receiver, latest_message } = req.body;
+
     if (!sessionId) {
       return res.status(400).json({ error: 'session ID required' });
     }
     if (!mongoose.Types.ObjectId.isValid(sessionId)) {
       return res.status(400).json({ error: 'Invalid session ID' });
     }
-
-    // check if session exists and not banned
-    const foundSession = await Session.findById(sessionId).exec();
-    if (!foundSession) {
-      return res.status(404).json({ error: 'Session not found' });
-    }
-    if (foundSession.banned) {
-      return res.status(400).json({ error: 'Session is banned' });
-    }
-
-    const { latest_sender, latest_receiver, latest_message } = req.body;
 
     if (!latest_sender || !latest_receiver || !latest_message) {
       return res
@@ -83,6 +90,21 @@ export const createMessageForSession = async (req: Request, res: Response) => {
     }
     if (!mongoose.Types.ObjectId.isValid(sessionId)) {
       return res.status(400).json({ error: 'Invalid session ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== latest_sender) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    // check if session exists and not banned
+    const foundSession = await Session.findById(sessionId).exec();
+    if (!foundSession) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    if (foundSession.banned) {
+      return res.status(400).json({ error: 'Session is banned' });
     }
 
     const validBody = await createMessageSchemaValidate.validateAsync(

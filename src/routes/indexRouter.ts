@@ -8,7 +8,7 @@ import userAuthGuard from '../middlewares/userAuthMiddleware';
 
 const indexRouter = express.Router();
 
-indexRouter.use('/health', healthCheckRouter);
+indexRouter.use('/health', userAuthGuard, healthCheckRouter);
 indexRouter.use('/users', userRouter);
 indexRouter.use('/sessions', userAuthGuard, sessionRouter);
 indexRouter.use('/payments', userAuthGuard, paymentRouter);

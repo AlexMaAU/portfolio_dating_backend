@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { JwtPayload } from 'jsonwebtoken';
 import Session from '../models/sessionModel';
 import { pageSize } from '../constants/settings';
 import User from '../models/userModel';
@@ -13,6 +14,21 @@ import SessionModel from '../interfaces/SessionModel';
 export const getAllSessions = async (req: Request, res: Response) => {
   try {
     const { page } = req.query; // 获取请求中的页码参数
+    const { adminId } = req.body;
+
+    if (!adminId) {
+      return res.status(400).json({ error: 'admin ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(adminId)) {
+      return res.status(400).json({ error: 'Invalid admin ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== adminId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
 
     const totalCount = await Session.countDocuments(); // 获取总数，用于计算总页数
@@ -41,6 +57,21 @@ export const getAllSessions = async (req: Request, res: Response) => {
 export const getAllSessionsByUserId = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+    const { adminId } = req.body;
+
+    if (!adminId) {
+      return res.status(400).json({ error: 'admin ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(adminId)) {
+      return res.status(400).json({ error: 'Invalid admin ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== adminId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     if (!userId) {
       return res.status(400).json({ error: 'user ID required' });
     }
@@ -97,6 +128,12 @@ export const getAllActiveSessionsByUserId = async (
       return res.status(400).json({ error: 'Invalid user ID' });
     }
 
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const user = await User.findById(userId).exec();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -150,11 +187,25 @@ export const createSession = async (req: Request, res: Response) => {
 
   try {
     const { latest_sender, latest_receiver } = req.body;
+    if (!latest_sender || !latest_receiver) {
+      return res.status(400).json({
+        error: 'latest sender user ID and latest receiver ID required',
+      });
+    }
     if (
       !mongoose.Types.ObjectId.isValid(latest_sender) &&
       !mongoose.Types.ObjectId.isValid(latest_receiver)
     ) {
       return res.status(400).json({ error: 'Invalid session ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (
+      decodedToken.id !== latest_sender &&
+      decodedToken.id !== latest_receiver
+    ) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     const latest_sender_obj =
@@ -232,12 +283,28 @@ export const createSession = async (req: Request, res: Response) => {
 export const updateSessionStatusById = async (req: Request, res: Response) => {
   try {
     const { sessionId } = req.params;
+    const { userId } = req.body;
+
     if (!sessionId) {
       return res.status(400).json({ error: 'session ID required' });
     }
     if (!mongoose.Types.ObjectId.isValid(sessionId)) {
       return res.status(400).json({ error: 'Invalid session ID' });
     }
+
+    if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const validBody = await updateSessionSchemaValidate.validateAsync(
       req.body,
       {

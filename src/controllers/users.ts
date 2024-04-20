@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import { JwtPayload } from 'jsonwebtoken';
 import User from '../models/userModel';
 import {
   newUserSchemaValidate,
@@ -130,11 +131,18 @@ export const userLogin = async (req: Request, res: Response) => {
 export const updateUserById = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+
     if (!userId) {
       return res.status(400).json({ error: 'user ID required' });
     }
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     const validBody = await updateUserSchemaValidate.validateAsync(req.body, {
@@ -191,7 +199,21 @@ export const updateUserById = async (req: Request, res: Response) => {
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const { page } = req.query; // 获取请求中的页码参数
-    const { username } = req.body;
+    const { adminId, username } = req.body;
+
+    if (!adminId) {
+      return res.status(400).json({ error: 'admin ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(adminId)) {
+      return res.status(400).json({ error: 'Invalid admin ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== adminId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
 
     const totalCount = await User.countDocuments(); // 获取用户总数，用于计算总页数
@@ -241,6 +263,20 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
       visa_type,
       serious_dating,
     } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
 
     const totalCount = await User.countDocuments(); // 获取用户总数，用于计算总页数
@@ -330,8 +366,15 @@ export const getRandomUser = async (req: Request, res: Response) => {
     if (!userId) {
       return res.status(400).json({ error: 'user ID required' });
     }
+
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     const user = await User.findById(userId).exec();
@@ -414,6 +457,21 @@ export const getRandomUser = async (req: Request, res: Response) => {
 export const getUserById = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+    const { adminId } = req.body;
+
+    if (!adminId) {
+      return res.status(400).json({ error: 'admin ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(adminId)) {
+      return res.status(400).json({ error: 'Invalid admin ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== adminId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     if (!userId) {
       return res.status(400).json({ error: 'user ID required' });
     }
@@ -443,8 +501,15 @@ export const getActiveUserById = async (req: Request, res: Response) => {
     if (!userId) {
       return res.status(400).json({ error: 'user ID required' });
     }
+
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     const user = await User.findOne({
