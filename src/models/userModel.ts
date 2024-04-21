@@ -126,6 +126,7 @@ const userSchema = new Schema({
       },
     ],
     default: [],
+    index: true,
   },
   liked_me: {
     type: [
@@ -135,6 +136,7 @@ const userSchema = new Schema({
       },
     ],
     default: [],
+    index: true,
   },
   matches: {
     type: [
@@ -144,6 +146,7 @@ const userSchema = new Schema({
       },
     ],
     default: [],
+    index: true,
   },
   mail_sessions: {
     type: [

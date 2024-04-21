@@ -8,7 +8,7 @@ import {
 } from '../validations/userValidate';
 import { generateToken } from '../utils/jwt';
 import { pageSize } from '../constants/settings';
-import mongoose from 'mongoose';
+import mongoose, { startSession } from 'mongoose';
 
 export const userSignup = async (req: Request, res: Response) => {
   try {
@@ -527,6 +527,196 @@ export const getActiveUserById = async (req: Request, res: Response) => {
     res.status(200).json(user);
   } catch (error: any) {
     console.error('Error in getUserById:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// get all liked me users
+export const getLikedMeUsers = async (req: Request, res: Response) => {
+  try {
+    const { page } = req.query; // 获取请求中的页码参数
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const user = await User.findById(userId).exec();
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
+
+    const totalCount = user.liked_me.length; // 获取用户总数，用于计算总页数
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    // 如果请求的页码超出了实际存在的页数，返回一个空数组
+    if (pageNumber < 1 || pageNumber > totalPages) {
+      return res.status(404).json([]);
+    }
+
+    const likedMeUsers = await User.find({
+      _id: { $in: user.liked_me },
+      profile_completed: true,
+    })
+      .select(
+        '_id active is_vip country username city visa_type profile_photo gender age height serious_dating',
+      )
+      .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
+      .limit(pageSize) // 限制返回的文档数量
+      .exec();
+
+    res.status(200).json(likedMeUsers);
+  } catch (error: any) {
+    console.error('Error in getLikedMeUsers:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// send like to user, add to liked list, if the other user is in liked_me list, add to matches list
+export const sendLike = async (req: Request, res: Response) => {
+  const session = await startSession();
+  session.startTransaction();
+
+  try {
+    const { userId } = req.params;
+    const { myId } = req.body;
+
+    if (!userId || !myId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+
+    if (
+      !mongoose.Types.ObjectId.isValid(userId) ||
+      !mongoose.Types.ObjectId.isValid(myId)
+    ) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const myIdObject = mongoose.Types.ObjectId.createFromHexString(myId);
+    const userIdObject = mongoose.Types.ObjectId.createFromHexString(userId);
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== myId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const me = await User.findById(myId).session(session).exec();
+
+    if (!me) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // 检查对方用户是否存在
+    const otherUser = await User.findById(userId).session(session).exec();
+
+    if (!otherUser) {
+      return res.status(404).json({ error: 'Other user not found' });
+    }
+
+    // 将对方用户添加到当前用户的喜欢列表中
+    me.liked.unshift(userIdObject);
+
+    // 如果对方已经在当前用户的喜欢列表中，那么将两个用户添加到匹配列表中
+    if (
+      me.liked_me.includes(userIdObject) &&
+      otherUser.liked_me.includes(myIdObject)
+    ) {
+      // 更新当前用户的匹配列表
+      me.matches.unshift(userIdObject);
+
+      // 更新对方用户的匹配列表
+      otherUser.matches.unshift(myIdObject);
+    }
+
+    await me.save();
+    await otherUser.save();
+    await session.commitTransaction();
+    session.endSession();
+
+    if (
+      me.liked_me.includes(userIdObject) &&
+      otherUser.liked_me.includes(myIdObject)
+    ) {
+      return res
+        .status(200)
+        .json({
+          message: 'user matched',
+          sender: myIdObject,
+          receiver: userIdObject,
+        });
+    } else {
+      return res.status(200).json({ message: 'Like sent successfully' });
+    }
+  } catch (error: any) {
+    console.error('Error in sendLike:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// get all matches by user id
+export const getAllMatches = async (req: Request, res: Response) => {
+  try {
+    const { page } = req.query; // 获取请求中的页码参数
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const user = await User.findById(userId).exec();
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
+
+    const totalCount = user.matches.length; // 获取用户总数，用于计算总页数
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    // 如果请求的页码超出了实际存在的页数，返回一个空数组
+    if (pageNumber < 1 || pageNumber > totalPages) {
+      return res.status(404).json([]);
+    }
+
+    const matches = await User.find({
+      _id: { $in: user.matches },
+      profile_completed: true,
+    })
+      .select(
+        '_id active is_vip country username city visa_type profile_photo gender age height serious_dating',
+      )
+      .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
+      .limit(pageSize) // 限制返回的文档数量
+      .exec();
+
+    res.status(200).json(matches);
+  } catch (error: any) {
+    console.error('Error in getAllMatches:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
