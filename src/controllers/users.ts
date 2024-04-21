@@ -247,9 +247,9 @@ export const getAllUsers = async (req: Request, res: Response) => {
 // filter by country, city, gender, age, height, income, visa_type, serious_dating
 export const getFilteredUsers = async (req: Request, res: Response) => {
   try {
+    const { userId } = req.params;
     const { page } = req.query; // 获取请求中的页码参数
     const {
-      userId,
       country, // 默认值，从user中获得，不需要选择
       city,
       minAge,
@@ -360,7 +360,8 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
 // get random active user by country and city
 export const getRandomUser = async (req: Request, res: Response) => {
   try {
-    const { userId, country, city, gender, seek_gender } = req.body;
+    const { userId } = req.params;
+    const { country, city, gender, seek_gender } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'user ID required' });
@@ -532,12 +533,6 @@ export const getActiveUserById = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
 
-    const decodedToken = req.headers.user as JwtPayload;
-
-    if (decodedToken.id !== userId) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-
     const user = await User.findOne({
       _id: userId,
       active: true,
@@ -561,7 +556,7 @@ export const getActiveUserById = async (req: Request, res: Response) => {
 export const getLikedMeUsers = async (req: Request, res: Response) => {
   try {
     const { page } = req.query; // 获取请求中的页码参数
-    const { userId } = req.body;
+    const { userId } = req.params;
 
     if (!userId) {
       return res.status(400).json({ error: 'user ID required' });
@@ -617,8 +612,7 @@ export const sendLike = async (req: Request, res: Response) => {
   session.startTransaction();
 
   try {
-    const { userId } = req.params;
-    const { myId } = req.body;
+    const { userId, myId } = req.params;
 
     if (!userId || !myId) {
       return res.status(400).json({ error: 'user ID required' });
@@ -653,13 +647,22 @@ export const sendLike = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Other user not found' });
     }
 
-    // 将对方用户添加到当前用户的喜欢列表中
-    me.liked.unshift(userIdObject);
+    // 将对方用户添加到当前用户的喜欢列表中，如果对方不在当前用户的喜欢列表中
+    if (!me.liked.includes(userIdObject)) {
+      me.liked.unshift(userIdObject);
+    }
+
+    // 将当前用户添加到对方用户的喜欢我列表中，如果当前用户不在对方用户的喜欢我列表中
+    if (!otherUser.liked_me.includes(myIdObject)) {
+      otherUser.liked_me.unshift(myIdObject);
+    }
 
     // 如果对方已经在当前用户的喜欢列表中，那么将两个用户添加到匹配列表中
     if (
       me.liked_me.includes(userIdObject) &&
-      otherUser.liked_me.includes(myIdObject)
+      otherUser.liked_me.includes(myIdObject) &&
+      !me.matches.includes(userIdObject) &&
+      !otherUser.matches.includes(myIdObject)
     ) {
       // 更新当前用户的匹配列表
       me.matches.unshift(userIdObject);
