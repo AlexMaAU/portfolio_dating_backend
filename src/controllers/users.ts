@@ -173,7 +173,6 @@ export const updateUserById = async (req: Request, res: Response) => {
       validBody.seek_gender &&
       validBody.birthday &&
       validBody.height &&
-      validBody.body_type &&
       validBody.income &&
       validBody.job_title
     ) {
@@ -431,22 +430,49 @@ export const getRandomUser = async (req: Request, res: Response) => {
       }
     }
 
-    const users = await User.find(queryConditions)
-      .select(
-        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
-      )
-      .exec();
+    const users = await User.find(queryConditions).select('_id').exec();
 
     // 如果没有找到用户，返回空数组
     if (users.length === 0) {
       return res.status(404).json({ error: 'No users found' });
     }
 
-    // 生成随机索引
-    const randomIndex = Math.floor(Math.random() * users.length);
+    const recommendedUsers = user.recommended_users || [];
+    let randomIndex;
+    let selectedUser;
+
+    // 循环，直到找到一个未推荐过的用户
+    do {
+      // 生成随机索引
+      randomIndex = Math.floor(Math.random() * users.length);
+      // 获取随机选择的用户
+      selectedUser = users[randomIndex]._id;
+
+      // 检查推荐列表中是否已经包含该用户
+      const alreadyRecommended = recommendedUsers.includes(selectedUser);
+
+      // 如果推荐列表中不包含该用户，则跳出循环
+      if (!alreadyRecommended) {
+        break;
+      }
+      // 如果推荐列表包含了所有用户，返回空数组
+      if (recommendedUsers.length === users.length) {
+        return res.status(404).json([]);
+      }
+    } while (true);
+
+    // 将推荐的用户添加到用户的推荐列表中
+    user.recommended_users = [...recommendedUsers, selectedUser];
+    await user.save();
+
+    const selectedUserObject = await User.findById(selectedUser)
+      .select(
+        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+      )
+      .exec();
 
     // 返回随机选择的用户
-    res.status(200).json(users[randomIndex]);
+    res.status(200).json(selectedUserObject);
   } catch (error: any) {
     console.error('Error in getRandomUser:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -651,13 +677,11 @@ export const sendLike = async (req: Request, res: Response) => {
       me.liked_me.includes(userIdObject) &&
       otherUser.liked_me.includes(myIdObject)
     ) {
-      return res
-        .status(200)
-        .json({
-          message: 'user matched',
-          sender: myIdObject,
-          receiver: userIdObject,
-        });
+      return res.status(200).json({
+        message: 'user matched',
+        sender: myIdObject,
+        receiver: userIdObject,
+      });
     } else {
       return res.status(200).json({ message: 'Like sent successfully' });
     }
@@ -720,4 +744,3 @@ export const getAllMatches = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-

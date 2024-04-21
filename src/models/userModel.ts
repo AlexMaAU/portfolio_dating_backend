@@ -118,6 +118,16 @@ const userSchema = new Schema({
     type: Number,
     default: 100,
   },
+  recommended_users: {
+    type: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    default: [],
+    index: true,
+  },
   liked: {
     type: [
       {
