@@ -143,7 +143,7 @@ export const getAllActiveSessionsByUserId = async (
     const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
 
     if (user.mail_sessions.length === 0) {
-      return res.status(404).json({ error: 'User has no session' });
+      return res.status(404).json([]);
     }
 
     const totalCount = user.mail_sessions.length; // 获取总数，用于计算总页数

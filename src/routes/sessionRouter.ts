@@ -12,7 +12,7 @@ import {
 const sessionRouter = express.Router();
 
 // 拉黑后不能再发送信息，也不会再显示在消息页中。
-sessionRouter.get('/:userId', getAllActiveSessionsByUserId);
+sessionRouter.get('/user/:userId', getAllActiveSessionsByUserId);
 
 // 拉黑后不能再发送信息，也不会再显示在消息页中。
 sessionRouter.post('/', createSession);

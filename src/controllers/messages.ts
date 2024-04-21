@@ -40,7 +40,7 @@ export const getAllMessagesOfSession = async (req: Request, res: Response) => {
     const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
 
     if (session.all_messages.length === 0) {
-      return res.status(404).json({ error: 'Session has no message' });
+      return res.status(404).json([]);
     }
 
     const totalCount = session.all_messages.length; // 获取总数，用于计算总页数

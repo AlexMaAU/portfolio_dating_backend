@@ -19,13 +19,13 @@ adminRouter.post('/login', adminLogin);
 
 adminRouter.put('/:adminId', adminAuthGuard, updateAdminById);
 
-adminRouter.get('/users', adminAuthGuard, getAllUsers);
+adminRouter.get('/users/all', adminAuthGuard, getAllUsers);
 
 adminRouter.get('/users/:userId', adminAuthGuard, getUserById);
 
 adminRouter.get('/sessions/:userId', adminAuthGuard, getAllSessionsByUserId);
 
-adminRouter.get('/sessions', adminAuthGuard, getAllSessions);
+adminRouter.get('/sessions/all', adminAuthGuard, getAllSessions);
 
 export default adminRouter;
 

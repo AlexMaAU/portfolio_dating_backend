@@ -9,7 +9,7 @@ const paymentRouter = express.Router();
 
 paymentRouter.post('/', createPayment);
 
-paymentRouter.get('/', getAllPayments);
+paymentRouter.get('/all', getAllPayments);
 
 paymentRouter.get('/:paymentId', getPaymentById);
 
