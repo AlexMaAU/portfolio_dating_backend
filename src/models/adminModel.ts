@@ -4,6 +4,7 @@ const adminSchema = new Schema({
   active: {
     type: Boolean,
     default: true,
+    index: true,
   },
   username: {
     type: String,
