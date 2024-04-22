@@ -9,6 +9,7 @@ import {
   getRandomUser,
   sendLike,
   updateUserById,
+  updateUserPassword,
   userLogin,
   userSignup,
 } from '../controllers/users';
@@ -25,6 +26,7 @@ userRouter.post('/login', userLogin);
 userRouter.put('/:userId', userAuthGuard, updateUserById);
 
 // TODO: 用户更新密码
+userRouter.put('/:userId/password', userAuthGuard, updateUserPassword);
 
 // 用户资料完善，未完善资料的用户不会显示到展示列表
 // 用户随即推荐和全部匹配用户列表都按照用户性取向匹配，支持LG匹配。默认同国家同城市范围。

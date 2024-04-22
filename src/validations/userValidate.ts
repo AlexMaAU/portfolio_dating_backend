@@ -8,7 +8,6 @@ export const newUserSchemaValidate = joi.object({
 export const updateUserSchemaValidate = joi.object({
   is_vip: joi.boolean().optional(),
   active: joi.boolean().optional(),
-  password: joi.string().min(4).max(10).optional(),
   username: joi.string().min(2).max(14).optional(),
   city: joi.string().optional(),
   visa_type: joi.string().optional(),
@@ -32,5 +31,10 @@ export const updateUserSchemaValidate = joi.object({
   matches: joi.array().optional(),
   mail_sessions: joi.array().optional(),
   last_login: joi.date().optional(),
+});
+
+export const updateUserPasswordSchemaValidate = joi.object({
+  old_password: joi.string().min(4).max(10).required(),
+  new_password: joi.string().min(4).max(10).required(),
 });
 

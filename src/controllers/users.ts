@@ -4,6 +4,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import User from '../models/userModel';
 import {
   newUserSchemaValidate,
+  updateUserPasswordSchemaValidate,
   updateUserSchemaValidate,
 } from '../validations/userValidate';
 import { generateToken } from '../utils/jwt';
@@ -150,12 +151,6 @@ export const updateUserById = async (req: Request, res: Response) => {
       stripUnknown: true,
     });
 
-    // 如果请求中包含密码，对密码进行哈希处理
-    const { password } = validBody;
-    if (validBody.password) {
-      validBody.password = await bcrypt.hash(password, 10);
-    }
-
     // 根据生日计算年龄
     const { birthday } = validBody;
     const birthdayDate = new Date(birthday);
@@ -190,6 +185,55 @@ export const updateUserById = async (req: Request, res: Response) => {
     res.status(200).json(updatedUser);
   } catch (error: any) {
     console.error('Error in updateUserById:', error);
+    res.status(400).json({ error });
+  }
+};
+
+// update password by user id
+export const updateUserPassword = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const validBody = await updateUserPasswordSchemaValidate.validateAsync(
+      req.body,
+      {
+        allowUnknown: true,
+        stripUnknown: true,
+      },
+    );
+
+    const { old_password, new_password } = validBody;
+
+    const user = await User.findById(userId).select('+password').exec();
+
+    // 检查旧的密码是否和数据库中的密码一致
+    if (!user || !(await bcrypt.compare(old_password, user.password))) {
+      return res.status(400).json({ error: 'incorrect old password' });
+    }
+
+    // 更新密码
+    if (new_password) {
+      user.password = await bcrypt.hash(new_password, 10);
+    }
+
+    await user.save();
+
+    res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error: any) {
+    console.error('Error in updateUserPassword:', error);
     res.status(400).json({ error });
   }
 };
