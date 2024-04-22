@@ -482,12 +482,13 @@ export const getRandomUser = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'No users found' });
     }
 
-    const recommendedUsers = user.recommended_users || [];
     let randomIndex;
     let selectedUser;
+    let selectedUsers = [];
 
-    // 循环，直到找到一个未推荐过的用户
+    // 循环，直到找到10个未推荐过的用户
     do {
+      const recommendedUsers = user.recommended_users || [];
       // 生成随机索引
       randomIndex = Math.floor(Math.random() * users.length);
       // 获取随机选择的用户
@@ -496,28 +497,29 @@ export const getRandomUser = async (req: Request, res: Response) => {
       // 检查推荐列表中是否已经包含该用户
       const alreadyRecommended = recommendedUsers.includes(selectedUser);
 
-      // 如果推荐列表中不包含该用户，则跳出循环
+      // 如果推荐列表中不包含该用户
       if (!alreadyRecommended) {
-        break;
+        // 将推荐的用户添加到用户的推荐列表中
+        user.recommended_users = [...recommendedUsers, selectedUser];
+        selectedUsers.push(selectedUser);
+        await user.save();
       }
       // 如果推荐列表包含了所有用户，返回空数组
       if (recommendedUsers.length === users.length) {
-        return res.status(404).json([]);
+        break;
       }
-    } while (true);
+    } while (selectedUsers.length < 10);
 
-    // 将推荐的用户添加到用户的推荐列表中
-    user.recommended_users = [...recommendedUsers, selectedUser];
-    await user.save();
-
-    const selectedUserObject = await User.findById(selectedUser)
+    const selectedUserObjects = await User.find({
+      _id: { $in: selectedUsers },
+    })
       .select(
         '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
 
-    // 返回随机选择的用户
-    res.status(200).json(selectedUserObject);
+    // 返回随机选择的所有用户
+    res.status(200).json(selectedUserObjects);
   } catch (error: any) {
     console.error('Error in getRandomUser:', error);
     res.status(500).json({ error: 'Internal server error' });
