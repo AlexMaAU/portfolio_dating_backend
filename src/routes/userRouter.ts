@@ -33,7 +33,7 @@ userRouter.put('/:userId/password', userAuthGuard, updateUserPassword);
 userRouter.get('/:userId/all', userAuthGuard, getFilteredUsers);
 
 // 用户资料完善，未完善资料的用户不会显示到展示列表
-// 非VIP用户100次随机推荐，次数用完后再次点击推荐，提示后跳转到VIP购买页
+// 非VIP用户200次随机推荐，次数用完后再次点击推荐，提示后跳转到VIP购买页
 // VIP用户无限随机推荐
 // 匹配用户列表可以进一步筛选。
 // 用户随即推荐和全部匹配用户列表都按照用户性取向匹配，支持LG匹配。默认同国家同城市范围。

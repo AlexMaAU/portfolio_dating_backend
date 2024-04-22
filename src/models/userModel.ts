@@ -116,7 +116,7 @@ const userSchema = new Schema({
   },
   recommend_limit: {
     type: Number,
-    default: 100,
+    default: 200,
   },
   recommended_users: {
     type: [
