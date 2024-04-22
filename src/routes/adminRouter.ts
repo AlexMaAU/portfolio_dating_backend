@@ -20,19 +20,19 @@ adminRouter.post('/login', adminLogin);
 
 adminRouter.put('/:adminId', adminAuthGuard, updateAdminById);
 
-adminRouter.get('/:adminId/users/all', adminAuthGuard, getAllUsers);
+adminRouter.get('/:adminId/users', adminAuthGuard, getAllUsers);
 
 adminRouter.get('/:adminId/users/:userId', adminAuthGuard, getUserById);
 
 adminRouter.get(
-  '/:adminId/users/:userId/sessions/all',
+  '/:adminId/users/:userId/sessions',
   adminAuthGuard,
   getAllSessionsByUserId,
 );
 
-adminRouter.get('/:adminId/sessions/all', adminAuthGuard, getAllSessions);
+adminRouter.get('/:adminId/sessions', adminAuthGuard, getAllSessions);
 
-adminRouter.get('/:adminId/payments/all', adminAuthGuard, getAllPayments);
+adminRouter.get('/:adminId/payments', adminAuthGuard, getAllPayments);
 
 adminRouter.get(
   '/:adminId/payments/:paymentId',
