@@ -9,18 +9,18 @@ import { newPaymentSchemaValidate } from '../validations/paymentValidate';
 export const getAllPayments = async (req: Request, res: Response) => {
   try {
     const { page } = req.query; // 获取请求中的页码参数
-    const { userId } = req.body;
+    const { adminId } = req.params;
 
-    if (!userId) {
-      return res.status(400).json({ error: 'user ID required' });
+    if (!adminId) {
+      return res.status(400).json({ error: 'admin ID required' });
     }
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'Invalid user ID' });
+    if (!mongoose.Types.ObjectId.isValid(adminId)) {
+      return res.status(400).json({ error: 'Invalid admin ID' });
     }
 
     const decodedToken = req.headers.user as JwtPayload;
 
-    if (decodedToken.id !== userId) {
+    if (decodedToken.id !== adminId) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
@@ -40,7 +40,7 @@ export const getAllPayments = async (req: Request, res: Response) => {
       .limit(pageSize) // 限制返回的文档数量
       .exec();
 
-    res.status(200).json(payments);
+    res.status(200).json({ payments, totalCount, totalPages });
   } catch (error: any) {
     console.error('Error in getAllPayments:', error);
     res.status(500).json({ error });
@@ -50,19 +50,18 @@ export const getAllPayments = async (req: Request, res: Response) => {
 // 查看某个支付记录
 export const getPaymentById = async (req: Request, res: Response) => {
   try {
-    const { paymentId } = req.params;
-    const { userId } = req.body;
+    const { paymentId, adminId } = req.params;
 
-    if (!userId) {
+    if (!adminId) {
       return res.status(400).json({ error: 'user ID required' });
     }
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'Invalid user ID' });
+    if (!mongoose.Types.ObjectId.isValid(adminId)) {
+      return res.status(400).json({ error: 'Invalid admin ID' });
     }
 
     const decodedToken = req.headers.user as JwtPayload;
 
-    if (decodedToken.id !== userId) {
+    if (decodedToken.id !== adminId) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 

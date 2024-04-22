@@ -10,6 +10,7 @@ import {
   getAllSessions,
   getAllSessionsByUserId,
 } from '../controllers/sessions';
+import { getAllPayments, getPaymentById } from '../controllers/payments';
 
 const adminRouter = express.Router();
 
@@ -19,13 +20,25 @@ adminRouter.post('/login', adminLogin);
 
 adminRouter.put('/:adminId', adminAuthGuard, updateAdminById);
 
-adminRouter.get('/users/all', adminAuthGuard, getAllUsers);
+adminRouter.get('/:adminId/users/all', adminAuthGuard, getAllUsers);
 
-adminRouter.get('/users/:userId', adminAuthGuard, getUserById);
+adminRouter.get('/:adminId/users/:userId', adminAuthGuard, getUserById);
 
-adminRouter.get('/sessions/:userId', adminAuthGuard, getAllSessionsByUserId);
+adminRouter.get(
+  '/:adminId/users/:userId/sessions/all',
+  adminAuthGuard,
+  getAllSessionsByUserId,
+);
 
-adminRouter.get('/sessions/all', adminAuthGuard, getAllSessions);
+adminRouter.get('/:adminId/sessions/all', adminAuthGuard, getAllSessions);
+
+adminRouter.get('/:adminId/payments/all', adminAuthGuard, getAllPayments);
+
+adminRouter.get(
+  '/:adminId/payments/:paymentId',
+  adminAuthGuard,
+  getPaymentById,
+);
 
 export default adminRouter;
 

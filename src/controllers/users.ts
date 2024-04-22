@@ -241,8 +241,9 @@ export const updateUserPassword = async (req: Request, res: Response) => {
 // get all users with pagination
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
+    const { adminId } = req.params;
     const { page } = req.query; // 获取请求中的页码参数
-    const { adminId, username } = req.body;
+    const { username } = req.body;
 
     if (!adminId) {
       return res.status(400).json({ error: 'admin ID required' });
@@ -280,7 +281,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
       .exec();
-    res.status(200).json(users);
+    res.status(200).json({ users, totalCount, totalPages });
   } catch (error: any) {
     console.error('Error in getAllUsers:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -535,8 +536,7 @@ export const getRandomUser = async (req: Request, res: Response) => {
 // get selected user by id
 export const getUserById = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
-    const { adminId } = req.body;
+    const { adminId, userId } = req.params;
 
     if (!adminId) {
       return res.status(400).json({ error: 'admin ID required' });

@@ -14,7 +14,7 @@ import SessionModel from '../interfaces/SessionModel';
 export const getAllSessions = async (req: Request, res: Response) => {
   try {
     const { page } = req.query; // 获取请求中的页码参数
-    const { adminId } = req.body;
+    const { adminId } = req.params;
 
     if (!adminId) {
       return res.status(400).json({ error: 'admin ID required' });
@@ -56,8 +56,7 @@ export const getAllSessions = async (req: Request, res: Response) => {
 // 获取用户的聊天session - admin
 export const getAllSessionsByUserId = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
-    const { adminId } = req.body;
+    const { adminId, userId } = req.params;
 
     if (!adminId) {
       return res.status(400).json({ error: 'admin ID required' });
