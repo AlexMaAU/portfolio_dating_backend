@@ -539,6 +539,43 @@ export const getActiveUserById = async (req: Request, res: Response) => {
       profile_completed: true,
     })
       .select(
+        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit last_login profile_completed',
+      )
+      .exec();
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.status(200).json(user);
+  } catch (error: any) {
+    console.error('Error in getUserById:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// get user self info by id
+export const getActiveMyUser = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      return res.status(400).json({ error: 'user ID required' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const user = await User.findOne({
+      _id: userId,
+      active: true,
+      profile_completed: true,
+    })
+      .select(
         '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();

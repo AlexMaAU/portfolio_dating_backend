@@ -1,6 +1,7 @@
 import express from 'express';
 import userAuthGuard from '../middlewares/userAuthMiddleware';
 import {
+  getActiveMyUser,
   getActiveUserById,
   getAllMatches,
   getFilteredUsers,
@@ -23,6 +24,8 @@ userRouter.post('/login', userLogin);
 
 userRouter.put('/:userId', userAuthGuard, updateUserById);
 
+// TODO: 用户更新密码
+
 // 用户资料完善，未完善资料的用户不会显示到展示列表
 // 用户随即推荐和全部匹配用户列表都按照用户性取向匹配，支持LG匹配。默认同国家同城市范围。
 userRouter.get('/:userId/all', userAuthGuard, getFilteredUsers);
@@ -34,7 +37,11 @@ userRouter.get('/:userId/all', userAuthGuard, getFilteredUsers);
 // 用户随即推荐和全部匹配用户列表都按照用户性取向匹配，支持LG匹配。默认同国家同城市范围。
 userRouter.get('/:userId/recommend', userAuthGuard, getRandomUser);
 
+// 根据用户ID获取用户信息
 userRouter.get('/:userId', userAuthGuard, getActiveUserById);
+
+// 获取当前登录用户信息
+userRouter.get('/:userId/me', userAuthGuard, getActiveMyUser);
 
 // 所有用户可以查看喜欢了我的用户。
 userRouter.get('/:userId/liked-me', userAuthGuard, getLikedMeUsers);
