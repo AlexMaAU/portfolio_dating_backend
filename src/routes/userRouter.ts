@@ -37,6 +37,7 @@ userRouter.get('/:userId/all', userAuthGuard, getFilteredUsers);
 // VIP用户无限随机推荐
 // 匹配用户列表可以进一步筛选。
 // 用户随即推荐和全部匹配用户列表都按照用户性取向匹配，支持LG匹配。默认同国家同城市范围。
+// 用户随机匹配，服务端会返回10个随机匹配用户，前端分别展示完后再从后端获取10个新的，减少服务器请求次数
 userRouter.get('/:userId/recommend', userAuthGuard, getRandomUser);
 
 // 根据用户ID获取用户信息
