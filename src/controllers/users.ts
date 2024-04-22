@@ -510,6 +510,12 @@ export const getRandomUser = async (req: Request, res: Response) => {
       }
     } while (selectedUsers.length < 10);
 
+    // 如果没有可推荐用户不会减少次数
+    if (selectedUsers.length === 0) {
+      user.recommend_limit += 1;
+      await user.save();
+    }
+
     const selectedUserObjects = await User.find({
       _id: { $in: selectedUsers },
     })
