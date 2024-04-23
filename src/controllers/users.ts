@@ -176,9 +176,13 @@ export const updateUserById = async (req: Request, res: Response) => {
       validBody.profile_completed = true;
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, validBody, {
-      new: true,
-    })
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: validBody },
+      {
+        new: true,
+      },
+    )
       .select(
         '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit last_login profile_completed',
       )

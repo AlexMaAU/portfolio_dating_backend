@@ -311,7 +311,7 @@ export const updateSessionStatusById = async (req: Request, res: Response) => {
     );
     const updatedSession = await Session.findByIdAndUpdate(
       sessionId,
-      validBody,
+      { $set: validBody },
       {
         new: true,
       },
@@ -322,4 +322,3 @@ export const updateSessionStatusById = async (req: Request, res: Response) => {
     res.status(500).json({ error });
   }
 };
-

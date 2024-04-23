@@ -88,9 +88,13 @@ export const updateAdminById = async (req: Request, res: Response) => {
       validBody.password = await bcrypt.hash(password, 10);
     }
 
-    const updatedAdmin = await Admin.findByIdAndUpdate(adminId, validBody, {
-      new: true,
-    }).exec();
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      adminId,
+      { $set: validBody },
+      {
+        new: true,
+      },
+    ).exec();
 
     res.status(200).json(updatedAdmin);
   } catch (error: any) {

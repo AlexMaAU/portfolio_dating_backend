@@ -1,6 +1,11 @@
 import { Schema, model } from 'mongoose';
 
 const bannerSchema = new Schema({
+  active: {
+    type: Boolean,
+    default: true,
+    index: true,
+  },
   user: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -19,6 +24,7 @@ const bannerSchema = new Schema({
   payment_date: {
     type: Date,
     default: Date.now,
+    index: -1,
   },
   amount: {
     type: String,
@@ -46,3 +52,4 @@ const bannerSchema = new Schema({
 const Banner = model('Banner', bannerSchema);
 
 export default Banner;
+
