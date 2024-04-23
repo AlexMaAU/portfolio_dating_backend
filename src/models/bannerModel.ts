@@ -31,6 +31,11 @@ const bannerSchema = new Schema({
     default: null,
     required: true,
   },
+  duration: {
+    type: String,
+    default: null,
+    required: true,
+  },
   expire_date: {
     type: Date,
     default: null,

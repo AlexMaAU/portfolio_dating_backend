@@ -5,7 +5,7 @@ export const newBannerSchemaValidate = joi.object({
   country: joi.string().required(),
   city: joi.string().required(),
   amount: joi.string().required(),
-  expire_date: joi.date().required(),
+  duration: joi.string().required(),
   vertical_image: joi.string().required(),
   horizontal_image: joi.string().required(),
   website: joi.string().required(),

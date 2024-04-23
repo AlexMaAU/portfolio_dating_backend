@@ -11,6 +11,11 @@ import {
   getAllSessionsByUserId,
 } from '../controllers/sessions';
 import { getAllPayments, getPaymentById } from '../controllers/payments';
+import {
+  getAllBanners,
+  getBannerById,
+  updateBannerById,
+} from '../controllers/banners';
 
 const adminRouter = express.Router();
 
@@ -38,6 +43,16 @@ adminRouter.get(
   '/:adminId/payments/:paymentId',
   adminAuthGuard,
   getPaymentById,
+);
+
+adminRouter.get('/:adminId/banners', adminAuthGuard, getAllBanners);
+
+adminRouter.get('/:adminId/banners/:bannerId', adminAuthGuard, getBannerById);
+
+adminRouter.put(
+  '/:adminId/banners/:bannerId',
+  adminAuthGuard,
+  updateBannerById,
 );
 
 export default adminRouter;

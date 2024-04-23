@@ -16,7 +16,7 @@ export const createBanner = async (req: Request, res: Response) => {
       stripUnknown: true,
     });
 
-    const { user } = validBody;
+    const { user, duration } = validBody;
 
     if (!user) {
       return res.status(400).json({ error: 'user ID required' });
@@ -31,6 +31,22 @@ export const createBanner = async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
+    // 获取当前时间的秒数
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+
+    // 将 duration 转换为秒数
+    const months = parseInt(duration);
+    const secondsInMonth = months * 30 * 24 * 60 * 60;
+
+    // 计算到期时间的秒数
+    const expireTimestamp = currentTimestamp + secondsInMonth;
+
+    // 将到期时间的秒数转换为日期格式
+    const expireDate = new Date(expireTimestamp * 1000);
+
+    // 设置 expire_date 为到期日期
+    validBody.expire_date = expireDate;
+
     const newBanner = await new Banner(validBody).save();
 
     res.status(201).json(newBanner);
@@ -41,7 +57,30 @@ export const createBanner = async (req: Request, res: Response) => {
 };
 
 // 获取未过期的同城广告
-export const getActiveBannersOfCity = async (req: Request, res: Response) => {};
+export const getActiveBannersOfCity = async (req: Request, res: Response) => {
+  try {
+    const { country, city } = req.body;
+
+    if (!country) {
+      return res.status(400).json({ error: 'country required' });
+    }
+    if (!city) {
+      return res.status(400).json({ error: 'city required' });
+    }
+
+    const activeBanners = await Banner.find({
+      country,
+      city,
+      active: true,
+      expire_date: { $gte: new Date() },
+    }).exec();
+
+    res.status(200).json(activeBanners);
+  } catch (error: any) {
+    console.error('Error in getActiveBannersOfCity:', error);
+    res.status(400).json({ error });
+  }
+};
 
 // 获取所有广告 - admin
 export const getAllBanners = async (req: Request, res: Response) => {
