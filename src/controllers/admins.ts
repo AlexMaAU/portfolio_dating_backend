@@ -8,6 +8,7 @@ import {
 } from '../validations/adminValidate';
 import Admin from '../models/adminModel';
 import mongoose from 'mongoose';
+import User from '../models/userModel';
 
 export const adminSignup = async (req: Request, res: Response) => {
   try {
@@ -103,3 +104,44 @@ export const updateAdminById = async (req: Request, res: Response) => {
   }
 };
 
+// 给所有用户的recommend_limit字段增加addLimit
+export const addRecommendLimitToAllUsers = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { adminId } = req.params;
+    const { addLimit } = req.body;
+    if (!adminId) {
+      return res.status(400).json({ error: 'admin ID required' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(adminId)) {
+      return res.status(400).json({ error: 'Invalid admin ID' });
+    }
+
+    const decodedToken = req.headers.user as JwtPayload;
+
+    if (decodedToken.id !== adminId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!addLimit) {
+      return res.status(400).json({ error: 'addLimit required' });
+    }
+
+    const addLimitNumber = Number(addLimit);
+    if (isNaN(addLimitNumber)) {
+      return res.status(400).json({ error: 'Invalid addLimit value' });
+    }
+
+    // 给所有用户的recommend_limit字段增加addLimit
+    await User.updateMany({}, { $inc: { recommend_limit: addLimitNumber } });
+
+    res
+      .status(200)
+      .json({ message: 'Recommend limit updated successfully for all users' });
+  } catch (error: any) {
+    console.error('Error in addRecommendLimitToAllUsers:', error);
+    res.status(400).json({ error });
+  }
+};

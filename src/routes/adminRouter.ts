@@ -2,6 +2,7 @@ import express from 'express';
 import adminAuthGuard from '../middlewares/adminAuthMiddleware';
 import { getAllUsers, getUserById } from '../controllers/users';
 import {
+  addRecommendLimitToAllUsers,
   adminLogin,
   adminSignup,
   updateAdminById,
@@ -33,6 +34,12 @@ adminRouter.get(
   '/:adminId/users/:userId/sessions',
   adminAuthGuard,
   getAllSessionsByUserId,
+);
+
+adminRouter.put(
+  '/:adminId/users/add-limits',
+  adminAuthGuard,
+  addRecommendLimitToAllUsers,
 );
 
 adminRouter.get('/:adminId/sessions', adminAuthGuard, getAllSessions);
