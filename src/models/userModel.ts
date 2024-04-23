@@ -6,6 +6,11 @@ const userSchema = new Schema({
     default: true,
     index: true,
   },
+  take_rest: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
   is_vip: {
     type: Boolean,
     default: false,

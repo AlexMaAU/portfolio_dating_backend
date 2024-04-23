@@ -27,6 +27,7 @@ export const userSignup = async (req: Request, res: Response) => {
     const safeNewUser = {
       _id: newUser._id,
       active: newUser.active,
+      take_rest: newUser.take_rest,
       is_vip: newUser.is_vip,
       email: newUser.email,
       username: newUser.username,
@@ -93,6 +94,7 @@ export const userLogin = async (req: Request, res: Response) => {
     const safeUser = {
       _id: user._id,
       active: user.active,
+      take_rest: user.take_rest,
       is_vip: user.is_vip,
       email: user.email,
       username: user.username,
@@ -178,7 +180,7 @@ export const updateUserById = async (req: Request, res: Response) => {
       new: true,
     })
       .select(
-        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit last_login profile_completed',
+        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit last_login profile_completed',
       )
       .exec();
 
@@ -275,7 +277,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
     const users = await User.find(queryConditions)
       .select(
-        '_id active is_vip email country username city profile_photo gender seek_gender recommend_limit last_login register_date profile_completed',
+        '_id active take_rest is_vip email country username city profile_photo gender seek_gender recommend_limit last_login register_date profile_completed',
       )
       .sort({ register_date: -1 }) // 按注册日期从新到旧排序
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
@@ -332,6 +334,7 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
 
     let queryConditions: any = {
       active: true,
+      take_rest: false,
       profile_completed: true,
       _id: { $ne: userId }, // 排除当前用户
     };
@@ -389,7 +392,7 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
 
     const users = await User.find(queryConditions)
       .select(
-        '_id active is_vip country username city visa_type profile_photo gender seek_gender age height income education job_title hobbies serious_dating last_login profile_completed',
+        '_id active take_rest is_vip country username city visa_type profile_photo gender seek_gender age height income education job_title hobbies serious_dating last_login profile_completed',
       )
       .sort({ register_date: -1 }) // 按注册日期从新到旧排序
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
@@ -439,6 +442,7 @@ export const getRandomUser = async (req: Request, res: Response) => {
 
     let queryConditions: any = {
       active: true,
+      take_rest: false,
       profile_completed: true,
       _id: { $ne: userId }, // 排除当前用户
     };
@@ -521,7 +525,7 @@ export const getRandomUser = async (req: Request, res: Response) => {
       _id: { $in: selectedUsers },
     })
       .select(
-        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
 
@@ -560,7 +564,7 @@ export const getUserById = async (req: Request, res: Response) => {
 
     const user = await User.findById(userId)
       .select(
-        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
     if (!user) {
@@ -588,10 +592,11 @@ export const getActiveUserById = async (req: Request, res: Response) => {
     const user = await User.findOne({
       _id: userId,
       active: true,
+      take_rest: false,
       profile_completed: true,
     })
       .select(
-        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit last_login profile_completed',
+        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit last_login profile_completed',
       )
       .exec();
     if (!user) {
@@ -625,10 +630,9 @@ export const getActiveMyUser = async (req: Request, res: Response) => {
     const user = await User.findOne({
       _id: userId,
       active: true,
-      profile_completed: true,
     })
       .select(
-        '_id active is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
     if (!user) {
@@ -679,10 +683,12 @@ export const getLikedMeUsers = async (req: Request, res: Response) => {
 
     const likedMeUsers = await User.find({
       _id: { $in: user.liked_me },
+      active: true,
+      take_rest: false,
       profile_completed: true,
     })
       .select(
-        '_id active is_vip country username city visa_type profile_photo gender age height serious_dating',
+        '_id active take_rest is_vip country username city visa_type profile_photo gender age height serious_dating',
       )
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
@@ -821,10 +827,12 @@ export const getAllMatches = async (req: Request, res: Response) => {
 
     const matches = await User.find({
       _id: { $in: user.matches },
+      active: true,
+      take_rest: false,
       profile_completed: true,
     })
       .select(
-        '_id active is_vip country username city visa_type profile_photo gender age height serious_dating',
+        '_id active take_rest is_vip country username city visa_type profile_photo gender age height serious_dating',
       )
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量

@@ -8,6 +8,7 @@ export const newUserSchemaValidate = joi.object({
 export const updateUserSchemaValidate = joi.object({
   is_vip: joi.boolean().optional(),
   active: joi.boolean().optional(),
+  take_rest: joi.boolean().optional(),
   username: joi.string().min(2).max(14).optional(),
   city: joi.string().optional(),
   visa_type: joi.string().optional(),
