@@ -119,6 +119,10 @@ const userSchema = new Schema({
     default: false,
     index: true,
   },
+  prefer_dating_type: {
+    type: String,
+    default: null,
+  },
   recommend_limit: {
     type: Number,
     default: 200,

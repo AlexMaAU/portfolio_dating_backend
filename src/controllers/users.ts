@@ -48,6 +48,7 @@ export const userSignup = async (req: Request, res: Response) => {
       self_introduction: newUser.self_introduction,
       looking_for: newUser.looking_for,
       serious_dating: newUser.serious_dating,
+      prefer_dating_type: newUser.prefer_dating_type,
       recommend_limit: newUser.recommend_limit,
       liked: newUser.liked,
       liked_me: newUser.liked_me,
@@ -115,6 +116,7 @@ export const userLogin = async (req: Request, res: Response) => {
       self_introduction: user.self_introduction,
       looking_for: user.looking_for,
       serious_dating: user.serious_dating,
+      prefer_dating_type: user.prefer_dating_type,
       recommend_limit: user.recommend_limit,
       liked: user.liked,
       liked_me: user.liked_me,
@@ -171,7 +173,8 @@ export const updateUserById = async (req: Request, res: Response) => {
       validBody.birthday &&
       validBody.height &&
       validBody.income &&
-      validBody.job_title
+      validBody.job_title &&
+      validBody.prefer_dating_type
     ) {
       validBody.profile_completed = true;
     }
@@ -184,7 +187,7 @@ export const updateUserById = async (req: Request, res: Response) => {
       },
     )
       .select(
-        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit last_login profile_completed',
+        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit last_login profile_completed',
       )
       .exec();
 
@@ -312,6 +315,7 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
       income,
       visa_type,
       serious_dating,
+      prefer_dating_type,
     } = req.body;
 
     if (!userId) {
@@ -366,6 +370,9 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
     if (serious_dating) {
       queryConditions.serious_dating = serious_dating;
     }
+    if (prefer_dating_type) {
+      queryConditions.prefer_dating_type = prefer_dating_type;
+    }
 
     // 根据用户的性别和期望的匹配性别动态设置查询条件
     // 如果用户是男性
@@ -396,7 +403,7 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
 
     const users = await User.find(queryConditions)
       .select(
-        '_id active take_rest is_vip country username city visa_type profile_photo gender seek_gender age height income education job_title hobbies serious_dating last_login profile_completed',
+        '_id active take_rest is_vip country username city visa_type profile_photo gender seek_gender age height income education job_title hobbies serious_dating prefer_dating_type last_login profile_completed',
       )
       .sort({ register_date: -1 }) // 按注册日期从新到旧排序
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
@@ -529,7 +536,7 @@ export const getRandomUser = async (req: Request, res: Response) => {
       _id: { $in: selectedUsers },
     })
       .select(
-        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
 
@@ -568,7 +575,7 @@ export const getUserById = async (req: Request, res: Response) => {
 
     const user = await User.findById(userId)
       .select(
-        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
     if (!user) {
@@ -600,7 +607,7 @@ export const getActiveUserById = async (req: Request, res: Response) => {
       profile_completed: true,
     })
       .select(
-        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit last_login profile_completed',
+        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit last_login profile_completed',
       )
       .exec();
     if (!user) {
@@ -636,7 +643,7 @@ export const getActiveMyUser = async (req: Request, res: Response) => {
       active: true,
     })
       .select(
-        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
     if (!user) {
@@ -692,7 +699,7 @@ export const getLikedMeUsers = async (req: Request, res: Response) => {
       profile_completed: true,
     })
       .select(
-        '_id active take_rest is_vip country username city visa_type profile_photo gender age height serious_dating',
+        '_id active take_rest is_vip country username city visa_type profile_photo gender age height serious_dating prefer_dating_type',
       )
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
@@ -836,7 +843,7 @@ export const getAllMatches = async (req: Request, res: Response) => {
       profile_completed: true,
     })
       .select(
-        '_id active take_rest is_vip country username city visa_type profile_photo gender age height serious_dating',
+        '_id active take_rest is_vip country username city visa_type profile_photo gender age height serious_dating prefer_dating_type',
       )
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量

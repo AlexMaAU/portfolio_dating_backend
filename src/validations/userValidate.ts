@@ -26,6 +26,7 @@ export const updateUserSchemaValidate = joi.object({
   self_introduction: joi.string().optional(),
   looking_for: joi.string().optional(),
   serious_dating: joi.boolean().optional(),
+  prefer_dating_type: joi.string().optional(),
   recommend_limit: joi.number().optional(),
   liked: joi.array().optional(),
   liked_me: joi.array().optional(),
