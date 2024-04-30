@@ -3,6 +3,7 @@ import joi from 'joi';
 export const newUserSchemaValidate = joi.object({
   email: joi.string().email().required(),
   password: joi.string().min(4).max(10).required(),
+  googleId: joi.string().optional(),
 });
 
 export const updateUserSchemaValidate = joi.object({
@@ -33,6 +34,7 @@ export const updateUserSchemaValidate = joi.object({
   matches: joi.array().optional(),
   mail_sessions: joi.array().optional(),
   last_login: joi.date().optional(),
+  googleId: joi.string().optional(),
 });
 
 export const updateUserPasswordSchemaValidate = joi.object({

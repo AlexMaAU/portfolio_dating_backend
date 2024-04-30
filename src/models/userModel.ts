@@ -192,6 +192,11 @@ const userSchema = new Schema({
     type: Date,
     default: null,
   },
+  googleId: {
+    type: String,
+    default: null,
+    index: true,
+  },
 });
 
 const User = model('User', userSchema);
