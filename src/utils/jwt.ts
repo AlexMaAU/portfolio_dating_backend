@@ -4,7 +4,7 @@ const JWT_KEY = process.env.JWT_KEY || 'chinese_dating';
 
 // 生成JWT令牌
 export const generateToken = (payload: object) => {
-  const token = jwt.sign(payload, JWT_KEY, { expiresIn: '15d' });
+  const token = jwt.sign(payload, JWT_KEY, { expiresIn: '30d' });
   return token;
 };
 
