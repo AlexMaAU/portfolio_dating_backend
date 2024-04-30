@@ -338,12 +338,12 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
     const { userId } = req.params;
     const { page } = req.query; // 获取请求中的页码参数
     const {
-      country, // 默认值，从user中获得，不需要选择
-      city,
+      country, // 默认值，和当前用户相同，不需要选择
+      city, // 默认值，和当前用户相同，不需要选择
       minAge,
       maxAge,
-      gender, // 默认值，从user中获得，不需要选择
-      seek_gender, // 默认值，从user中获得，不需要选择
+      gender, // 默认值，和当前用户相同，不需要选择
+      seek_gender, // 默认值，和当前用户相同，不需要选择
       minHeight,
       maxHeight,
       income,
@@ -502,10 +502,10 @@ export const getRandomUser = async (req: Request, res: Response) => {
       _id: { $ne: userId }, // 排除当前用户
     };
     if (country) {
-      queryConditions.country = country;
+      queryConditions.country = country; // 默认值，和当前用户相同
     }
     if (city) {
-      queryConditions.city = city;
+      queryConditions.city = city; // 默认值，和当前用户相同
     }
 
     // 根据用户的性别和期望的匹配性别动态设置查询条件
