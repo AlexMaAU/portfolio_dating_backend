@@ -10,6 +10,7 @@ import {
 import { generateToken } from '../utils/jwt';
 import { pageSize } from '../constants/settings';
 import mongoose, { startSession } from 'mongoose';
+import vipExpireCheck from '../utils/vipExpireCheck';
 
 export const userSignup = async (req: Request, res: Response) => {
   try {
@@ -28,7 +29,7 @@ export const userSignup = async (req: Request, res: Response) => {
       _id: newUser._id,
       active: newUser.active,
       take_rest: newUser.take_rest,
-      is_vip: newUser.is_vip,
+      vip_purchase_date: newUser.vip_purchase_date,
       email: newUser.email,
       username: newUser.username,
       country: newUser.country,
@@ -62,7 +63,17 @@ export const userSignup = async (req: Request, res: Response) => {
       email: newUser.email,
       role: 'user',
     });
-    res.status(201).json({ safeNewUser, token });
+
+    // 检查用户是否是VIP并且VIP是否过期
+    let vipExpired = null;
+
+    if (!newUser.vip_purchase_date) {
+      vipExpired = true;
+    } else {
+      vipExpired = vipExpireCheck(newUser.vip_purchase_date);
+    }
+
+    res.status(201).json({ vipExpired, safeNewUser, token });
   } catch (error: any) {
     console.error('Error in userSignup:', error);
     res.status(400).json({ error });
@@ -96,7 +107,7 @@ export const userLogin = async (req: Request, res: Response) => {
       _id: user._id,
       active: user.active,
       take_rest: user.take_rest,
-      is_vip: user.is_vip,
+      vip_purchase_date: user.vip_purchase_date,
       email: user.email,
       username: user.username,
       country: user.country,
@@ -126,7 +137,16 @@ export const userLogin = async (req: Request, res: Response) => {
       profile_completed: user.profile_completed,
     };
 
-    res.status(200).json({ safeUser, token });
+    // 检查用户是否是VIP并且VIP是否过期
+    let vipExpired = null;
+
+    if (!user.vip_purchase_date) {
+      vipExpired = true;
+    } else {
+      vipExpired = vipExpireCheck(user.vip_purchase_date);
+    }
+
+    res.status(200).json({ vipExpired, safeUser, token });
   } catch (error: any) {
     console.error('Error in userLogin:', error);
     res.status(400).json({ error });
@@ -187,11 +207,24 @@ export const updateUserById = async (req: Request, res: Response) => {
       },
     )
       .select(
-        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit last_login profile_completed',
+        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit last_login profile_completed',
       )
       .exec();
 
-    res.status(200).json(updatedUser);
+    if (!updatedUser) {
+      return res.status(403).json({ error: 'Update failed' });
+    }
+
+    // 检查用户是否是VIP并且VIP是否过期
+    let vipExpired = null;
+
+    if (!updatedUser.vip_purchase_date) {
+      vipExpired = true;
+    } else {
+      vipExpired = vipExpireCheck(updatedUser.vip_purchase_date);
+    }
+
+    res.status(200).json({ vipExpired, updatedUser });
   } catch (error: any) {
     console.error('Error in updateUserById:', error);
     res.status(400).json({ error });
@@ -284,12 +317,13 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
     const users = await User.find(queryConditions)
       .select(
-        '_id active take_rest is_vip email country username city profile_photo gender seek_gender recommend_limit last_login register_date profile_completed',
+        '_id active take_rest vip_purchase_date email country username city profile_photo gender seek_gender recommend_limit last_login register_date profile_completed',
       )
       .sort({ register_date: -1 }) // 按注册日期从新到旧排序
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
       .exec();
+
     res.status(200).json({ users, totalCount, totalPages });
   } catch (error: any) {
     console.error('Error in getAllUsers:', error);
@@ -403,12 +437,13 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
 
     const users = await User.find(queryConditions)
       .select(
-        '_id active take_rest is_vip country username city visa_type profile_photo gender seek_gender age height income education job_title hobbies serious_dating prefer_dating_type last_login profile_completed',
+        '_id active take_rest vip_purchase_date country username city visa_type profile_photo gender seek_gender age height income education job_title hobbies serious_dating prefer_dating_type last_login profile_completed',
       )
       .sort({ register_date: -1 }) // 按注册日期从新到旧排序
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
       .exec();
+
     res.status(200).json(users);
   } catch (error: any) {
     console.error('Error in getAllUsers:', error);
@@ -442,8 +477,17 @@ export const getRandomUser = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // 检查用户是否是VIP并且VIP是否过期
+    let vipExpired = null;
+
+    if (!user.vip_purchase_date) {
+      vipExpired = true;
+    } else {
+      vipExpired = vipExpireCheck(user.vip_purchase_date);
+    }
+
     // 如果用户不是VIP并且推荐次数已经用完，返回错误
-    if (!user.is_vip && user.recommend_limit <= 0) {
+    if (vipExpired && user.recommend_limit <= 0) {
       return res.status(403).json({ error: 'Recommend limit reached' });
     }
 
@@ -536,12 +580,12 @@ export const getRandomUser = async (req: Request, res: Response) => {
       _id: { $in: selectedUsers },
     })
       .select(
-        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
 
     // 返回随机选择的所有用户
-    res.status(200).json(selectedUserObjects);
+    res.status(200).json({ vipExpired, selectedUserObjects });
   } catch (error: any) {
     console.error('Error in getRandomUser:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -575,13 +619,23 @@ export const getUserById = async (req: Request, res: Response) => {
 
     const user = await User.findById(userId)
       .select(
-        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.status(200).json(user);
+
+    // 检查用户是否是VIP并且VIP是否过期
+    let vipExpired = null;
+
+    if (!user.vip_purchase_date) {
+      vipExpired = true;
+    } else {
+      vipExpired = vipExpireCheck(user.vip_purchase_date);
+    }
+
+    res.status(200).json({ vipExpired, user });
   } catch (error: any) {
     console.error('Error in getUserById:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -607,13 +661,23 @@ export const getActiveUserById = async (req: Request, res: Response) => {
       profile_completed: true,
     })
       .select(
-        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit last_login profile_completed',
+        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit last_login profile_completed',
       )
       .exec();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.status(200).json(user);
+
+    // 检查用户是否是VIP并且VIP是否过期
+    let vipExpired = null;
+
+    if (!user.vip_purchase_date) {
+      vipExpired = true;
+    } else {
+      vipExpired = vipExpireCheck(user.vip_purchase_date);
+    }
+
+    res.status(200).json({ vipExpired, user });
   } catch (error: any) {
     console.error('Error in getUserById:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -643,13 +707,23 @@ export const getActiveMyUser = async (req: Request, res: Response) => {
       active: true,
     })
       .select(
-        '_id active take_rest is_vip email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.status(200).json(user);
+
+    // 检查用户是否是VIP并且VIP是否过期
+    let vipExpired = null;
+
+    if (!user.vip_purchase_date) {
+      vipExpired = true;
+    } else {
+      vipExpired = vipExpireCheck(user.vip_purchase_date);
+    }
+
+    res.status(200).json({ vipExpired, user });
   } catch (error: any) {
     console.error('Error in getUserById:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -699,7 +773,7 @@ export const getLikedMeUsers = async (req: Request, res: Response) => {
       profile_completed: true,
     })
       .select(
-        '_id active take_rest is_vip country username city visa_type profile_photo gender age height serious_dating prefer_dating_type',
+        '_id active take_rest vip_purchase_date country username city visa_type profile_photo gender age height serious_dating prefer_dating_type',
       )
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量
@@ -843,7 +917,7 @@ export const getAllMatches = async (req: Request, res: Response) => {
       profile_completed: true,
     })
       .select(
-        '_id active take_rest is_vip country username city visa_type profile_photo gender age height serious_dating prefer_dating_type',
+        '_id active take_rest vip_purchase_date country username city visa_type profile_photo gender age height serious_dating prefer_dating_type',
       )
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
       .limit(pageSize) // 限制返回的文档数量

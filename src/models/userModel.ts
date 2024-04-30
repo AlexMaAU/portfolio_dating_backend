@@ -11,9 +11,9 @@ const userSchema = new Schema({
     default: false,
     index: true,
   },
-  is_vip: {
-    type: Boolean,
-    default: false,
+  vip_purchase_date: {
+    type: Date,
+    default: null,
   },
   email: {
     type: String,
@@ -122,6 +122,7 @@ const userSchema = new Schema({
   prefer_dating_type: {
     type: String,
     default: null,
+    index: true,
   },
   recommend_limit: {
     type: Number,
