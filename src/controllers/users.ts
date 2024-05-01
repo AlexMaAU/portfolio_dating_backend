@@ -43,6 +43,8 @@ export const userSignup = async (req: Request, res: Response) => {
       age: newUser.age,
       height: newUser.height,
       income: newUser.income,
+      hasProperty: newUser.hasProperty,
+      hasCar: newUser.hasCar,
       education: newUser.education,
       job_title: newUser.job_title,
       hobbies: newUser.hobbies,
@@ -121,6 +123,8 @@ export const userLogin = async (req: Request, res: Response) => {
       age: user.age,
       height: user.height,
       income: user.income,
+      hasProperty: user.hasProperty,
+      hasCar: user.hasCar,
       education: user.education,
       job_title: user.job_title,
       hobbies: user.hobbies,
@@ -207,7 +211,7 @@ export const updateUserById = async (req: Request, res: Response) => {
       },
     )
       .select(
-        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit last_login profile_completed',
+        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income hasProperty hasCar education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit last_login profile_completed',
       )
       .exec();
 
@@ -332,7 +336,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 };
 
 // get all active users by country, city, keyword with pagination
-// filter by country, city, gender, age, height, income, visa_type, serious_dating
+// filter by country, city, gender, age, height, income, hasProperty, hasCar, visa_type, serious_dating
 export const getFilteredUsers = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
@@ -347,6 +351,8 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
       minHeight,
       maxHeight,
       income,
+      hasProperty,
+      hasCar,
       visa_type,
       serious_dating,
       prefer_dating_type,
@@ -398,6 +404,12 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
     if (income && income.length > 0) {
       queryConditions.income = { $in: income };
     }
+    if (hasProperty) {
+      queryConditions.hasProperty = hasProperty;
+    }
+    if (hasCar) {
+      queryConditions.hasCar = hasCar;
+    }
     if (visa_type && visa_type.length > 0) {
       queryConditions.visa_type = { $in: visa_type };
     }
@@ -437,7 +449,7 @@ export const getFilteredUsers = async (req: Request, res: Response) => {
 
     const users = await User.find(queryConditions)
       .select(
-        '_id active take_rest vip_purchase_date country username city visa_type profile_photo gender seek_gender age height income education job_title hobbies serious_dating prefer_dating_type last_login profile_completed',
+        '_id active take_rest vip_purchase_date country username city visa_type profile_photo gender seek_gender age height income hasProperty hasCar education job_title hobbies serious_dating prefer_dating_type last_login profile_completed',
       )
       .sort({ register_date: -1 }) // 按注册日期从新到旧排序
       .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
@@ -580,7 +592,7 @@ export const getRandomUser = async (req: Request, res: Response) => {
       _id: { $in: selectedUsers },
     })
       .select(
-        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income hasProperty hasCar education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
 
@@ -619,7 +631,7 @@ export const getUserById = async (req: Request, res: Response) => {
 
     const user = await User.findById(userId)
       .select(
-        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income hasProperty hasCar education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
     if (!user) {
@@ -661,7 +673,7 @@ export const getActiveUserById = async (req: Request, res: Response) => {
       profile_completed: true,
     })
       .select(
-        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit last_login profile_completed',
+        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income hasProperty hasCar education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit last_login profile_completed',
       )
       .exec();
     if (!user) {
@@ -707,7 +719,7 @@ export const getActiveMyUser = async (req: Request, res: Response) => {
       active: true,
     })
       .select(
-        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
+        '_id active take_rest vip_purchase_date email country username city visa_type profile_photo gallery_photos gender seek_gender birthday age height income hasProperty hasCar education job_title hobbies self_introduction looking_for serious_dating prefer_dating_type recommend_limit liked liked_me matches mail_sessions last_login profile_completed',
       )
       .exec();
     if (!user) {

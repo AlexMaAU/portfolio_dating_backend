@@ -89,6 +89,16 @@ const userSchema = new Schema({
     default: null,
     index: true,
   },
+  hasProperty: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
+  hasCar: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
   education: {
     type: String,
     default: null,
