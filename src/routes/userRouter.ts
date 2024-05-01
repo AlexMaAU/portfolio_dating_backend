@@ -50,7 +50,7 @@ userRouter.get('/:userId/me', userAuthGuard, getActiveMyUser);
 userRouter.get('/:userId/liked-me', userAuthGuard, getLikedMeUsers);
 
 // 用户发送喜欢，添加到liked列表，如果对方已经在liked_me列表，添加到matches列表
-// 如果用户喜欢了我，我也点击喜欢用户，则匹配成功，创建session。
+// 如果用户喜欢了我，我也点击喜欢用户，则匹配成功。
 userRouter.post('/:myId/send-like/:userId', userAuthGuard, sendLike);
 
 // 查看匹配成功的用户

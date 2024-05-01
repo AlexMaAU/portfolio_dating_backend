@@ -200,7 +200,7 @@ export const createSession = async (req: Request, res: Response) => {
 
     const decodedToken = req.headers.user as JwtPayload;
 
-    // CreateSession的逻辑，是用户从liked_me数组中进行匹配，如果也喜欢了对方，则创建session。所以CreateSession的token验证只需要token.id === latest_sender。该用户就是latest_sender。
+    // CreateSession的token验证只需要token.id === latest_sender。发送用户就是latest_sender。
     if (decodedToken.id !== latest_sender) {
       return res.status(403).json({ error: 'Forbidden' });
     }
