@@ -11,10 +11,6 @@ const userSchema = new Schema({
     default: false,
     index: true,
   },
-  vip_purchase_date: {
-    type: Date,
-    default: null,
-  },
   email: {
     type: String,
     default: null,
@@ -38,11 +34,6 @@ const userSchema = new Schema({
     index: true,
   },
   city: {
-    type: String,
-    default: null,
-    index: true,
-  },
-  visa_type: {
     type: String,
     default: null,
     index: true,
@@ -75,16 +66,11 @@ const userSchema = new Schema({
     default: null,
   },
   age: {
-    type: String,
+    type: Number,
     default: null,
     index: true,
   },
   height: {
-    type: String,
-    default: null,
-    index: true,
-  },
-  income: {
     type: String,
     default: null,
     index: true,
@@ -136,7 +122,11 @@ const userSchema = new Schema({
   },
   recommend_limit: {
     type: Number,
-    default: 200,
+    default: 15,
+  },
+  last_update_time: {
+    type: Date,
+    default: null,
   },
   recommended_users: {
     type: [

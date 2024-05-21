@@ -83,7 +83,6 @@ export const updateAdminById = async (req: Request, res: Response) => {
       stripUnknown: true,
     });
 
-    // 如果请求中包含密码，对密码进行哈希处理
     const { password } = validBody;
     if (validBody.password) {
       validBody.password = await bcrypt.hash(password, 10);
@@ -104,7 +103,6 @@ export const updateAdminById = async (req: Request, res: Response) => {
   }
 };
 
-// 给所有用户的recommend_limit字段增加addLimit
 export const addRecommendLimitToAllUsers = async (
   req: Request,
   res: Response,
@@ -134,7 +132,6 @@ export const addRecommendLimitToAllUsers = async (
       return res.status(400).json({ error: 'Invalid addLimit value' });
     }
 
-    // 给所有用户的recommend_limit字段增加addLimit
     await User.updateMany({}, { $inc: { recommend_limit: addLimitNumber } });
 
     res
@@ -145,3 +142,4 @@ export const addRecommendLimitToAllUsers = async (
     res.status(400).json({ error });
   }
 };
+

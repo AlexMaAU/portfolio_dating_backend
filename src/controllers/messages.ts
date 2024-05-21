@@ -36,14 +36,14 @@ export const getAllMessagesOfSession = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Session not found' });
     }
 
-    const { page } = req.query; // 获取请求中的页码参数
-    const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
+    const { page } = req.query; 
+    const pageNumber = parseInt(page as string) || 1; 
 
     if (session.all_messages.length === 0) {
       return res.status(404).json([]);
     }
 
-    const totalCount = session.all_messages.length; // 获取总数，用于计算总页数
+    const totalCount = session.all_messages.length; 
     const totalPages = Math.ceil(totalCount / pageSize);
 
     if (pageNumber < 1 || pageNumber > totalPages) {
@@ -51,8 +51,8 @@ export const getAllMessagesOfSession = async (req: Request, res: Response) => {
     }
 
     const messages = await Message.find({ _id: { $in: session.all_messages } })
-      .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
-      .limit(pageSize) // 限制返回的文档数量
+      .skip((pageNumber - 1) * pageSize) 
+      .limit(pageSize) 
       .exec();
 
     res.status(200).json(messages);

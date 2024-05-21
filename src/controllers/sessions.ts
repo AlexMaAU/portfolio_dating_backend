@@ -10,10 +10,9 @@ import {
 } from '../validations/sessionValidate';
 import SessionModel from '../interfaces/SessionModel';
 
-// 这个意义不大，要查看聊天session应该是通过用户id来查看的 - admin
 export const getAllSessions = async (req: Request, res: Response) => {
   try {
-    const { page } = req.query; // 获取请求中的页码参数
+    const { page } = req.query;
     const { adminId } = req.params;
 
     if (!adminId) {
@@ -29,9 +28,9 @@ export const getAllSessions = async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
+    const pageNumber = parseInt(page as string) || 1;
 
-    const totalCount = await Session.countDocuments(); // 获取总数，用于计算总页数
+    const totalCount = await Session.countDocuments();
     const totalPages = Math.ceil(totalCount / pageSize);
 
     if (pageNumber < 1 || pageNumber > totalPages) {
@@ -42,8 +41,8 @@ export const getAllSessions = async (req: Request, res: Response) => {
       .select(
         '_id latest_sender latest_receiver latest_message timestamp unread banned',
       )
-      .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
-      .limit(pageSize) // 限制返回的文档数量
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize)
       .exec();
 
     res.status(200).json(sessions);
@@ -53,7 +52,6 @@ export const getAllSessions = async (req: Request, res: Response) => {
   }
 };
 
-// 获取用户的聊天session - admin
 export const getAllSessionsByUserId = async (req: Request, res: Response) => {
   try {
     const { adminId, userId } = req.params;
@@ -83,27 +81,26 @@ export const getAllSessionsByUserId = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const { page } = req.query; // 获取请求中的页码参数
-    const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
+    const { page } = req.query;
+    const pageNumber = parseInt(page as string) || 1;
 
     if (user.mail_sessions.length === 0) {
       return res.status(404).json({ error: 'User has no session' });
     }
 
-    const totalCount = user.mail_sessions.length; // 获取总数，用于计算总页数
+    const totalCount = user.mail_sessions.length;
     const totalPages = Math.ceil(totalCount / pageSize);
 
     if (pageNumber < 1 || pageNumber > totalPages) {
       return res.status(404).json([]);
     }
 
-    // 分页返回user中的mail_sessions
     const sessions = await Session.find({ _id: { $in: user.mail_sessions } })
       .select(
         '_id latest_sender latest_receiver latest_message timestamp banned',
       )
-      .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
-      .limit(pageSize) // 限制返回的文档数量
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize)
       .exec();
 
     res.status(200).json(sessions);
@@ -113,7 +110,6 @@ export const getAllSessionsByUserId = async (req: Request, res: Response) => {
   }
 };
 
-// 获取状态是unbanned用户的聊天session
 export const getAllActiveSessionsByUserId = async (
   req: Request,
   res: Response,
@@ -138,24 +134,23 @@ export const getAllActiveSessionsByUserId = async (
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const { page } = req.query; // 获取请求中的页码参数
-    const pageNumber = parseInt(page as string) || 1; // 将页码转换为数字，默认为第一页
+    const { page } = req.query;
+    const pageNumber = parseInt(page as string) || 1;
 
     if (user.mail_sessions.length === 0) {
       return res.status(404).json([]);
     }
 
-    const totalCount = user.mail_sessions.length; // 获取总数，用于计算总页数
+    const totalCount = user.mail_sessions.length;
     const totalPages = Math.ceil(totalCount / pageSize);
 
     if (pageNumber < 1 || pageNumber > totalPages) {
       return res.status(404).json([]);
     }
 
-    // 分页返回user中的mail_sessions
     const sessions = await Session.find({
       _id: { $in: user.mail_sessions },
-      banned: false, // 确保会话未被封禁
+      banned: false,
     })
       .select(
         '_id latest_sender latest_receiver latest_message timestamp unread banned',
@@ -168,8 +163,8 @@ export const getAllActiveSessionsByUserId = async (
         path: 'latest_receiver',
         select: '_id username profile_photo gender',
       })
-      .skip((pageNumber - 1) * pageSize) // 跳过前面的文档，实现分页
-      .limit(pageSize) // 限制返回的文档数量
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize)
       .exec();
 
     res.status(200).json(sessions);
@@ -179,7 +174,6 @@ export const getAllActiveSessionsByUserId = async (
   }
 };
 
-// 创建新的聊天session
 export const createSession = async (req: Request, res: Response) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -200,7 +194,6 @@ export const createSession = async (req: Request, res: Response) => {
 
     const decodedToken = req.headers.user as JwtPayload;
 
-    // CreateSession的token验证只需要token.id === latest_sender。发送用户就是latest_sender。
     if (decodedToken.id !== latest_sender) {
       return res.status(403).json({ error: 'Forbidden' });
     }
@@ -276,7 +269,6 @@ export const createSession = async (req: Request, res: Response) => {
   }
 };
 
-// 根据sessionId更新session status
 export const updateSessionStatusById = async (req: Request, res: Response) => {
   try {
     const { sessionId } = req.params;

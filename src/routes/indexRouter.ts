@@ -3,18 +3,13 @@ import healthCheckRouter from '../controllers/healthCheck';
 import userRouter from './userRouter';
 import adminRouter from './adminRouter';
 import sessionRouter from './sessionRouter';
-import paymentRouter from './paymentRouter';
 import userAuthGuard from '../middlewares/userAuthMiddleware';
-import bannerRouter from './bannerRouter';
 
 const indexRouter = express.Router();
 
 indexRouter.use('/health', userAuthGuard, healthCheckRouter);
 indexRouter.use('/users', userRouter);
 indexRouter.use('/sessions', userAuthGuard, sessionRouter);
-indexRouter.use('/payments', userAuthGuard, paymentRouter);
-indexRouter.use('/banners', userAuthGuard, bannerRouter);
-
 indexRouter.use('/admin', adminRouter);
 
 export default indexRouter;
