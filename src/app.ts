@@ -28,6 +28,7 @@ app.use(limiter);
 app.use(express.json());
 app.use('/v1', indexRouter);
 
+// MONGODB
 connectToDB().then(() => {
   app.listen(PORT, () => {
     console.log(`server running at http:127.0.0.1:${PORT}`);
