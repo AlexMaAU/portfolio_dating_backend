@@ -757,27 +757,21 @@ export const sendLike = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Other user not found' });
     }
 
-    // 将对方用户添加到当前用户的喜欢列表中，如果对方不在当前用户的喜欢列表中
     if (!me.liked.includes(userIdObject)) {
       me.liked.unshift(userIdObject);
     }
 
-    // 将当前用户添加到对方用户的喜欢我列表中，如果当前用户不在对方用户的喜欢我列表中
     if (!otherUser.liked_me.includes(myIdObject)) {
       otherUser.liked_me.unshift(myIdObject);
     }
 
-    // 如果对方已经在当前用户的喜欢列表中，那么将两个用户添加到匹配列表中
     if (
       me.liked_me.includes(userIdObject) &&
       otherUser.liked_me.includes(myIdObject) &&
       !me.matches.includes(userIdObject) &&
       !otherUser.matches.includes(myIdObject)
     ) {
-      // 更新当前用户的匹配列表
       me.matches.unshift(userIdObject);
-
-      // 更新对方用户的匹配列表
       otherUser.matches.unshift(myIdObject);
     }
 
